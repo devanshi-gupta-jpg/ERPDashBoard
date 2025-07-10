@@ -49,6 +49,6 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         'output' => (int) $row['output']
     ];
 }
-
+//
 header('Content-Type: application/json');
 echo json_encode($data);
