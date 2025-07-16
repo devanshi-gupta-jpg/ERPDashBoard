@@ -7,22 +7,9 @@
    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css" />
   <style>
-      /* body {
-      font-family: Arial;
-      background: #f1f3f8;
-      padding: 2rem;
-      display: flex;
-      justify-content: center;
-    } */
-        /* .container {
-      background: white;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      width: 80%;
-    } */
+
     canvas {
-      max-width: 500px;
+      max-width: 600px;
       max-height: 400px;
     }
     select {
@@ -46,6 +33,9 @@
       margin-top: 10px;
       margin-left: 12px;
     }
+    .line-chart{
+      max-width: 1000px;
+    }
   </style>
 </head>
 <body>
@@ -62,8 +52,8 @@
     <aside class="sidebar" id="sidebar">
       <h2>Dashboard</h2>
       <ul>
-        <li><a href="#">Dashboard 1</a></li>
-        <li><a href="#">Dashboard 2</a></li>
+        <li><a href="dashboard.html">Dashboard 1</a></li>
+        <li><a href="./Dashboard/commondashboard.html">Dashboard 2</a></li>
       </ul>
     </aside>
     
@@ -78,33 +68,37 @@
       <option value="ge">GE</option>
       <option value="fc">FC</option>
       <option value="wlr">WLR</option>
+      <option value="rdr">RDR</option>
+      <option value="oe">OE</option>
     </select>
     </div>
     <main class="main-content" id="main-content">
-    
-      <div class="chart-section" onclick="expandChart(this)"> 
-        <canvas id="equipmentChart"></canvas></div>
-
-        <!-- <div class="chart-section" id="equipmentChartContainer">
-          <div class="chart-section" id="equipmentChartContainer">
-  <button class="close-btn" onclick="closeFullScreen()">×</button>
-  <canvas id="equipmentChart"></canvas>
+  
+ 
+      <div class="chart-section">
+  <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
+  <canvas id="lineChart" class="line-chart" width="1000"  onclick="expandChart(this.parentElement) "></canvas>
 </div>
-  <button class="close-btn" onclick="closeFullScreen()">×</button>
-  <canvas id="equipmentChart"></canvas>
-</div> -->
 
-      <div class="chart-section" onclick="expandChart(this)">
-        <canvas id="statusChart" width="100" height="100"></canvas>
+
+
+      <div class="chart-section">
+         <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
+        <canvas id="statusChart" width="100" height="100" onclick="expandChart(this.parentElement)"></canvas>
       <div id="legend-box" style="margin-top:10px;"></div>
       </div>
 
-      <div class="chart-section" onclick="expandChart(this)">
-      <canvas id="commandChart" width="400" height="300"></canvas>
-      <div id="command-legend"></div>
+
+
+      <div class="chart-section">
+        <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
+        <h3>Under Repair Equipments</h3>      
+          <canvas id="underRepairChart" width="200" height="200" onclick="expandChart(this.parentElement)"></canvas>
+          <h3>Awaiting Collection Equipments</h3>
+       <canvas id="repairAwaitingChart" width="200" height="200" onclick="expandChart(this.parentElement)"></canvas>
       </div>
 
-      <div class="chart-section" onclick="expandChart(this)"> 
+      <div class="chart-section"> 
         <!-- <h2>Repair Duration Equipment-wise (<span id="yearLabel"></span>)</h2> -->
         <div class="filter">
         <label for="year">Select Year:</label>
@@ -120,13 +114,46 @@
             <option value="2025">2025</option>
         </select>
     </div>
-    <canvas id="durationChart" width="900" height="450"></canvas>
-      
+     <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
+    <canvas id="repairChart" width="900" height="450" onclick="expandChart(this.parentElement)"></canvas>
       </div>
-      
+      <!-- <div>
+        <canvas id="repairChart"></canvas>
+      </div>
+       -->
     </main>
   </div>
   </div>
+  <script>
+
+
+
+function expandChart(chart) {
+  const expanded = document.querySelector('.chart-section.fullscreen');
+
+  if (expanded && expanded !== chart) {
+    expanded.classList.remove('fullscreen');
+    const btn = expanded.querySelector('.back-btn');
+    if (btn) btn.style.display = 'none';
+  }
+
+  const isFullscreen = chart.classList.toggle('fullscreen');
+  const backBtn = chart.querySelector('.back-btn');
+  if (backBtn) {
+    backBtn.style.display = isFullscreen ? 'block' : 'none';
+  }
+}
+
+function collapseChart(e, chart) {
+  e.stopPropagation(); // prevent triggering expand again
+  chart.classList.remove('fullscreen');
+  const btn = chart.querySelector('.back-btn');
+  if (btn) btn.style.display = 'none';
+}
+
+
+</script>
+
 
   <script src="script.js"></script>
   <script src="dashboard.js"></script>

@@ -12,92 +12,52 @@ const STATUS_COLORS = ['#0088FE', '#FF8042', '#FFBB28', '#00C49F', '#A28CFE', '#
 let lineChart;
 let pieChart;
 
-// Load default data
-window.addEventListener('DOMContentLoaded', () => {
-  const defaultGroup = 'tl';
-  fetchLineChartData(defaultGroup);
-  fetchPieData(defaultGroup);
 
-  // Group filter event
-  document.getElementById('groupSelect')?.addEventListener('change', function () {
-    const group = this.value;
-    fetchLineChartData(group);
-    fetchPieData(group);
-  });
-});
 
-// 📊 Line Chart
-function fetchLineChartData(group) {
-  const ctxLine = document.getElementById('equipmentChart')?.getContext('2d');
-  if (!ctxLine) return;
 
+
+function fetchAndRenderChart(group) {
   fetch(`get_chart_data.php?group=${group}`)
     .then(res => res.json())
-    .then(data => {
-      const monthMap = {};
-
-      // Initialize all months with zero values
-      allMonths.forEach(month => {
-        monthMap[month] = { input: 0, output: 0 };
-      });
-
-      data.forEach(d => {
-        if (!d.date) return;
-
-        const parsedDate = new Date(d.date);
-        if (isNaN(parsedDate)) return;
-
-        const monthIndex = parsedDate.getMonth();
-        const monthName = allMonths[monthIndex];
-
-        monthMap[monthName].input += d.input;
-        monthMap[monthName].output += d.output;
-      });
-
-      const inputData = allMonths.map(month => monthMap[month].input);
-      const outputData = allMonths.map(month => monthMap[month].output);
+    .then(result => {
+      const data = result.data;
+      const labels = data.map(item => item.label);
+      const inputCounts = data.map(item => item.input);
+      const outputCounts = data.map(item => item.output);
 
       if (lineChart) lineChart.destroy();
 
-      lineChart = new Chart(ctxLine, {
+      const ctx = document.getElementById('lineChart').getContext('2d');
+      lineChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: allMonths,
+          labels: labels,
           datasets: [
             {
-              label: 'Input',
-              data: inputData,
-              borderColor: 'green',
-              backgroundColor: 'green',
-              pointRadius: 4,
-              tension: 0.3
+              label: 'Input (job_date)',
+              data: inputCounts,
+              borderColor: '#4CAF50',
+              backgroundColor: 'rgba(76, 175, 80, 0.2)',
+              tension: 0.4
             },
             {
-              label: 'Output',
-              data: outputData,
-              borderColor: 'blue',
-              backgroundColor: 'blue',
-              pointRadius: 4,
-              tension: 0.3
+              label: 'Output (wcn_date)',
+              data: outputCounts,
+              borderColor: '#2196F3',
+              backgroundColor: 'rgba(33, 150, 243, 0.2)',
+              tension: 0.4
             }
           ]
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { position: 'top' },
             title: {
               display: true,
-              text: 'Monthly Equipment Input/Output'
+              text: `Monthly Equipment Input & Output - ${group}`
             }
           },
           scales: {
-            x: {
-              title: {
-                display: true,
-                text: 'Month'
-              }
-            },
             y: {
               beginAtZero: true,
               title: {
@@ -113,8 +73,20 @@ function fetchLineChartData(group) {
         }
       });
     })
-    .catch(err => console.error('🔥 Error fetching line chart:', err));
+    .catch(err => console.error('Error fetching data:', err));
 }
+
+// On Page Load - Default Group TL
+document.addEventListener('DOMContentLoaded', function () {
+  const groupSelect = document.getElementById('groupSelect');
+  fetchAndRenderChart(groupSelect.value);
+
+  groupSelect.addEventListener('change', function () {
+    fetchAndRenderChart(this.value);
+  });
+});
+
+
 
 
 
@@ -174,6 +146,11 @@ function fetchPieData(group) {
     });
 }
 
+
+
+
+
+
        
 
 
@@ -185,127 +162,92 @@ function fetchPieData(group) {
 const COMMAND_LABELS = ['SWC', 'NC', 'WC', 'EC', 'SC', 'CC', 'IAF'];
 const COMMAND_COLORS = ['#0088FE', '#FF8042', '#FFBB28', '#00C49F', '#A28CFE', '#FF6699', '#FF4444'];
 
-let commandChart; // Chart instance
 
-// 🥧 Command-wise Pie Chart
-function fetchCommandPieData(group) {
-  const canvas = document.getElementById('commandChart');
-  if (!canvas) return;
 
+let underRepairPie, awaitingCollectionPie;
+
+function loadCommandWiseCharts(group) {
   fetch(`get_command_pie.php?group=${group}`)
     .then(res => res.json())
     .then(data => {
-      const filtered = data.filter(item => item.count > 0); // Only show non-zero slices
-
-      // If no data, optionally handle empty chart
-      if (filtered.length === 0) {
-        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-        document.getElementById('command-legend').innerHTML = '<em>No data available</em>';
-        return;
-      }
-
-      // Destroy previous chart if it exists
-      if (commandChart) commandChart.destroy();
-
-      const ctx = canvas.getContext('2d');
-
-      commandChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: filtered.map(d => d.command),
-          datasets: [{
-            data: filtered.map(d => d.count),
-            backgroundColor: filtered.map(d => {
-              const index = COMMAND_LABELS.indexOf(d.command);
-              return COMMAND_COLORS[index] || '#ccc';
-            })
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              display: false // We will use custom legend
-            },
-            tooltip: {
-              callbacks: {
-                label: function (context) {
-                  const value = context.raw;
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percent = ((value / total) * 100).toFixed(0);
-                  return `${context.label}: ${value} (${percent}%)`;
-                }
-              }
-            }
-          }
-        }
-      });
-
-      // ✅ Custom legend
-    //   const legendBox = document.getElementById('command-legend');
-    //   legendBox.innerHTML = filtered.map((d, i) => `
-    //     <div class="legend-item">
-    //       <span style="background-color:${COMMAND_COLORS[i]}; width:12px; height:12px; display:inline-block; border-radius:50%; margin-right:6px;"></span>
-    //       ${d.command}
-    //     </div>
-    //   `).join('');
-    // })
-    // .catch(err => {
-    //   console.error('🔥 Error loading command pie data:', err);
-    // });
-     const legendBox = document.getElementById('command-legend');
-      legendBox.innerHTML = COMMAND_LABELS.map((cmd, i) => `
-        <div class="legend-item">
-          <span style="background-color:${COMMAND_COLORS[i]}; width:12px; height:12px; display:inline-block; border-radius:50%; margin-right:6px;"></span>
-          ${cmd}
-        </div>
-      `).join('');
-    })
-    .catch(err => {
-      console.error('🔥 Error loading command pie data:', err);
-    });
-}
-
-
-
-
-let barChart;
-
-function loadChart(group) {
-  fetch(`get_avg_duration.php?group=${group}`)
-    .then(res => res.json())
-    .then(data => {
-      const jobNos = data.map(d => d.job_no);
-      const durations = data.map(d => d.duration);
-      const bgColors = data.map(d =>
-        d.status === 'Completed' ? '#4CAF50' : '#FFA726'
+      const underRepairCounts = COMMAND_LABELS.map(cmd =>
+        data['under_repair'].find(d => d.command === cmd)?.count || 0
+      );
+      const awaitingCollectionCounts = COMMAND_LABELS.map(cmd =>
+        data['awaiting_collection'].find(d => d.command === cmd)?.count || 0
       );
 
-      const ctx = document.getElementById('durationChart').getContext('2d');
+      console.log('Under Repair Data:', underRepairCounts);
+      console.log('Awaiting Collection Data:', awaitingCollectionCounts);
 
-      if (barChart) barChart.destroy();
+      if (underRepairPie) underRepairPie.destroy();
+      if (awaitingCollectionPie) awaitingCollectionPie.destroy();
 
-      barChart = new Chart(ctx, {
+      const ctx1 = document.getElementById('underRepairChart')?.getContext('2d');
+      if (ctx1) {
+        underRepairPie = new Chart(ctx1, {
+          type: 'pie',
+          data: {
+            labels: COMMAND_LABELS,
+            datasets: [{
+              data: underRepairCounts,
+              backgroundColor: COMMAND_COLORS
+            }]
+          },
+          options: {
+            plugins: { legend: { position: 'bottom' } }
+          }
+        });
+      }
+
+      const ctx2 = document.getElementById('repairAwaitingChart')?.getContext('2d');
+      if (ctx2) {
+        awaitingCollectionPie = new Chart(ctx2, {
+          type: 'pie',
+          data: {
+            labels: COMMAND_LABELS,
+            datasets: [{
+              data: awaitingCollectionCounts,
+              backgroundColor: COMMAND_COLORS
+            }]
+          },
+          options: {
+            plugins: { legend: { position: 'bottom' } }
+          }
+        });
+      }
+    })
+    .catch(err => console.error('🔥 Error loading command-wise pie charts:', err));
+}
+
+    
+
+
+let repairChartInstance = null;
+
+function fetchAndRenderRepairChart(group) {
+  fetch(`equipment_data.php?group=${group}&year=${year}`)
+    .then(res => res.json())
+    .then(result => {
+      if (repairChartInstance) repairChartInstance.destroy();
+
+      const ctx = document.getElementById('repairChart').getContext('2d');
+      repairChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: jobNos,
+          labels: ['3–6 Months Under Repair'],
           datasets: [{
-            label: 'Repair Duration (Days)',
-            data: durations,
-            backgroundColor: bgColors
+            label: 'Equipment Count',
+            data: [result.count],
+            backgroundColor: '#e67e22'
           }]
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: context => `${context.raw} days`
-              }
-            },
             title: {
-              display: false
+              display: true,
+              text: `Equipment Under Repair (3–6 Months) - ${group}`
             }
           },
           scales: {
@@ -313,51 +255,39 @@ function loadChart(group) {
               beginAtZero: true,
               title: {
                 display: true,
-                text: 'Duration (Days)'
-              }
-            },
-            x: {
-              title: {
-                display: true,
-                text: 'Job No'
+                text: 'Equipment Count'
+              },
+              ticks: {
+                stepSize: 1,
+                precision: 0
               }
             }
           }
         }
       });
     })
-    .catch(err => {
-      console.error('🔥 Fetch Error:', err);
-    });
+    .catch(err => console.error('Error fetching repair data:', err));
 }
 
+      
+         
+                          
 
-
-           
-                     
-
-
-// Global constants like allMonths, COLORS, etc.
-
-// Function: fetchLineChartData
-
-// Function: fetchPieData
-
-// Function: fetchCommandPieData
 
 // // ✅ DOMContentLoaded block — PLACE THIS AT END
 window.addEventListener('DOMContentLoaded', () => {
   const defaultGroup = 'tl';
-  fetchLineChartData(defaultGroup);
+  fetchAndRenderChart(defaultGroup)
   fetchPieData(defaultGroup);
-  fetchCommandPieData(defaultGroup);
-  loadChart(defaultGroup);
+  loadCommandWiseCharts(defaultGroup);
+
+  fetchAndRenderRepairChart(defaultGroup)
 
   document.getElementById('groupSelect')?.addEventListener('change', function () {
     const group = this.value;
-    fetchLineChartData(group);
+    fetchAndRenderChart(group)
     fetchPieData(group);
-    fetchCommandPieData(group);
-    loadChart(group);
+    loadCommandWiseCharts(group);
+      fetchAndRenderRepairChart(group);
   });
 });

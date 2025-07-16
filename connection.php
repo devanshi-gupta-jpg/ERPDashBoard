@@ -1,7 +1,7 @@
 <?php
 
 $serverName = "HP";
-$database = "voucher_509";
+$database = "voucher";
 $uid = "sa";
 $pass = "12345678";
 

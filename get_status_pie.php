@@ -1,3 +1,5 @@
+
+
 <?php
 include 'connection.php';
 
@@ -7,7 +9,7 @@ if (!$group) {
     exit;
 }
 
-// Fixed list of expected statuses (in uppercase)
+
 $statuses = [
     'UNDER REPAIR',
     'UNDER VIR',
@@ -18,7 +20,7 @@ $statuses = [
     'IN WKSP'
 ];
 
-// SQL query
+
 $sql = "
     SELECT s.status, COUNT(t.status) AS count
     FROM (
@@ -35,6 +37,7 @@ $sql = "
         AND UPPER(LTRIM(RTRIM(t.group_name))) = ?
     GROUP BY s.status
 ";
+$sql_total = "SELECT COUNT(job_no) AS total FROM tb_main WHERE job_no IS NOT NULL";
 
 $stmt = sqlsrv_query($conn, $sql, [$group]);
 
@@ -53,4 +56,4 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
 header('Content-Type: application/json');
 echo json_encode($data);
-?>
+?> 
