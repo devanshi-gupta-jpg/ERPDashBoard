@@ -1,29 +1,48 @@
 
 
 // Global constants
-const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const STATUS_LABELS = [
   'UNDER REPAIR', 'UNDER VIR', 'UNDER WCN PROCESS',
-  'AWAITING COLLECTION', 'EQPT COLLECTED',
-  'AWAITING JOB NO', 'IN WKSP'
+  'AWAITING COLLECTION',
+   'IN WKSP'
 ];
 const STATUS_COLORS = ['#0088FE', '#FF8042', '#FFBB28', '#00C49F', '#A28CFE', '#FF6699', '#FF4444'];
 
 let lineChart;
 let pieChart;
 
+document.addEventListener('DOMContentLoaded', function() {
+  const yearSelect = document.getElementById('yearSelect');
+  const currentYear = new Date().getFullYear();
+
+  for (let year = 2017; year <= currentYear; year++) {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    if (year === currentYear) option.selected = true;
+    yearSelect.appendChild(option);
+  }
+});
+function reloadChart() {
+  const selectedGroup = document.getElementById('groupSelect').value;
+  const selectedYear = document.getElementById('yearSelect').value;
+  fetchAndRenderChart(selectedGroup, selectedYear);
+}
 
 
 
+//line chart
 
-function fetchAndRenderChart(group) {
-  fetch(`get_chart_data.php?group=${group}`)
+function fetchAndRenderChart(group ,year) {
+fetch(`get_chart_data.php?group=${group}&year=${year}`)
+
     .then(res => res.json())
     .then(result => {
       const data = result.data;
       const labels = data.map(item => item.label);
       const inputCounts = data.map(item => item.input);
       const outputCounts = data.map(item => item.output);
+
 
       if (lineChart) lineChart.destroy();
 
@@ -54,7 +73,7 @@ function fetchAndRenderChart(group) {
           plugins: {
             title: {
               display: true,
-              text: `Monthly Equipment Input & Output - ${group}`
+              text: `Monthly Equipment Input & Output -  ${group} (${year})`
             }
           },
           scales: {
@@ -88,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-
+// pie chart
 
 function fetchPieData(group) {
   const ctxPie = document.getElementById('statusChart')?.getContext('2d');
@@ -108,7 +127,7 @@ function fetchPieData(group) {
         data: {
           labels: STATUS_LABELS,
           datasets: [{
-            data: counts,
+            data:counts,
             backgroundColor: STATUS_COLORS
           }]
         },
@@ -130,19 +149,41 @@ function fetchPieData(group) {
         }
       });
 
-      // ✅ Custom legend box
-      const legendBox = document.getElementById('legend-box');
-      if (legendBox) {
-        legendBox.innerHTML = STATUS_LABELS.map((status, i) => `
-          <div style="margin: 4px 0;">
-            <span style="background:${STATUS_COLORS[i]}; width:12px; height:12px; display:inline-block; border-radius:50%; margin-right:6px;"></span>
-            ${status}
-          </div>
-        `).join('');
-      }
+       function renderCustomLegend(containerId, labels, counts, colors) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const total = counts.reduce((a, b) => a + b, 0) || 1;
+
+  container.innerHTML = labels.map((label, i) => `
+    <div style="
+      display: inline-flex;
+      align-items: center;
+      background: rgba(0,0,0,0.05);
+      margin: 4px;
+      padding: 15px;
+      border-radius: 5px;
+      font-size: 12px;
+    ">
+      <span style="
+        width: 10px; 
+        height: 10px; 
+        border-radius: 50%; 
+        background-color: ${colors[i]};
+        display: inline-block; 
+        margin-right: 5px;">
+      </span>
+      ${label} — ${counts[i]} (${((counts[i] / total) * 100).toFixed(1)}%)
+    </div>
+  `).join('');
+}
+
+renderCustomLegend('statuswise-legend', STATUS_LABELS, counts, STATUS_COLORS);
+
+
     })
     .catch(err => {
-      console.error('🔥 Error loading status pie chart:', err);
+      console.error(' Error loading status pie chart:', err);
     });
 }
 
@@ -195,7 +236,9 @@ function loadCommandWiseCharts(group) {
             }]
           },
           options: {
-            plugins: { legend: { position: 'bottom' } }
+            plugins:{
+              legend:{display:false}
+            }
           }
         });
       }
@@ -212,82 +255,169 @@ function loadCommandWiseCharts(group) {
             }]
           },
           options: {
-            plugins: { legend: { position: 'bottom' } }
+            plugins: { legend: { display:false } }
+          }
+        });
+      }
+      function renderCustomLegend(containerId, labels, counts, colors) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const total = counts.reduce((a, b) => a + b, 0) || 1;
+
+  container.innerHTML = labels.map((label, i) => `
+    <div style="
+      display: inline-flex;
+      align-items: center;
+      background: rgba(0,0,0,0.05);
+      margin: 4px;
+      padding: 15px;
+      border-radius: 5px;
+      font-size: 12px;
+    ">
+      <span style="
+        width: 10px; 
+        height: 10px; 
+        border-radius: 50%; 
+        background-color: ${colors[i]};
+        display: inline-block; 
+        margin-right: 5px;">
+      </span>
+      ${label} — ${counts[i]} (${((counts[i] / total) * 100).toFixed(1)}%)
+    </div>
+  `).join('');
+}
+
+renderCustomLegend('underRepairLegendBox', COMMAND_LABELS, underRepairCounts, COMMAND_COLORS);
+renderCustomLegend('awaitingCollectionLegendBox', COMMAND_LABELS, awaitingCollectionCounts, COMMAND_COLORS);
+
+
+    })
+    .catch(err => console.error(' Error loading command-wise pie charts:', err));
+}
+
+  
+
+   let repairAgeChart = null;   
+  function loadRepairAgeChart(group) {
+    fetch(`equipment_data.php?group=${group}`)
+    .then(res => res.json())
+    .then(data => {
+      console.log('Repair Age Data:', data.counts);
+
+      if (repairAgeChart && typeof repairAgeChart.destroy === 'function') {
+        repairAgeChart.destroy();
+      }
+
+      const ctx = document.getElementById('repairAgeChart')?.getContext('2d');
+      if (ctx) {
+        repairAgeChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Under 3 Months', '3-6 Months', '6-12 Months', 'Over 1 Year'],
+            datasets: [{
+              label: 'Equipment Count',
+              data: data.counts,
+              backgroundColor: '#e67e22'
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Equipment Count' },
+                ticks:{
+                  stepSize:1,
+                  precision:0
+                }
+              }
+            }
           }
         });
       }
     })
-    .catch(err => console.error('🔥 Error loading command-wise pie charts:', err));
+    .catch(err => console.error(' Error loading repair age chart:', err));
 }
-
-    
-
-
-let repairChartInstance = null;
-
-function fetchAndRenderRepairChart(group) {
-  fetch(`equipment_data.php?group=${group}&year=${year}`)
-    .then(res => res.json())
-    .then(result => {
-      if (repairChartInstance) repairChartInstance.destroy();
-
-      const ctx = document.getElementById('repairChart').getContext('2d');
-      repairChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['3–6 Months Under Repair'],
-          datasets: [{
-            label: 'Equipment Count',
-            data: [result.count],
-            backgroundColor: '#e67e22'
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            title: {
-              display: true,
-              text: `Equipment Under Repair (3–6 Months) - ${group}`
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Equipment Count'
-              },
-              ticks: {
-                stepSize: 1,
-                precision: 0
-              }
-            }
-          }
-        }
-      });
-    })
-    .catch(err => console.error('Error fetching repair data:', err));
-}
-
-      
-         
+       
                           
 
 
-// // ✅ DOMContentLoaded block — PLACE THIS AT END
+
+// window.addEventListener('DOMContentLoaded', () => {
+//   const defaultGroup = 'tl';
+//   const defaultyear = new Date().getFullYear();
+//   fetchAndRenderChart(defaultGroup ,defaultyear)
+//   fetchPieData(defaultGroup);
+//   loadCommandWiseCharts(defaultGroup);
+//   loadRepairAgeChart(defaultGroup)
+
+
+  
+//   document.getElementById('groupSelect')?.addEventListener('change', reloadChart);
+//   document.getElementById('yearSelect')?.addEventListener('change', reloadChart);
+ 
+
+//   document.getElementById('groupSelect')?.addEventListener('change', function () {
+//     const group = this.value;
+//     fetchAndRenderChart(group ,defaultyear)
+//     fetchPieData(group);
+//     loadCommandWiseCharts(group);
+//     loadRepairAgeChart(group);
+//       // fetchAndRenderRepairChart(group);
+//   });
+// });
 window.addEventListener('DOMContentLoaded', () => {
-  const defaultGroup = 'tl';
-  fetchAndRenderChart(defaultGroup)
-  fetchPieData(defaultGroup);
-  loadCommandWiseCharts(defaultGroup);
+  selectGroup('tl');  // ✅ Set default group on page load
 
-  fetchAndRenderRepairChart(defaultGroup)
+  // Also attach dropdown change event
+  const groupSelect = document.getElementById('groupSelect');
+  const yearSelect = document.getElementById('yearSelect');
 
-  document.getElementById('groupSelect')?.addEventListener('change', function () {
-    const group = this.value;
-    fetchAndRenderChart(group)
-    fetchPieData(group);
-    loadCommandWiseCharts(group);
-      fetchAndRenderRepairChart(group);
-  });
+  if (groupSelect) {
+    groupSelect.addEventListener('change', function () {
+      selectGroup(this.value);
+    });
+  }
+
+  if (yearSelect) {
+    yearSelect.addEventListener('change', function () {
+      const group = groupSelect?.value || 'tl';
+      selectGroup(group);
+    });
+  }
 });
+
+
+function selectGroup(group) {
+  const year = document.getElementById('yearSelect')?.value || new Date().getFullYear();
+
+  // Set the dropdown value so both stay in sync
+  const groupSelect = document.getElementById('groupSelect');
+  if (groupSelect) groupSelect.value = group;
+
+  fetchAndRenderChart(group, year);
+  fetchPieData(group);
+  loadCommandWiseCharts(group);
+  loadRepairAgeChart(group);
+    document.querySelectorAll('.group-buttons button').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`.group-buttons button[onclick="selectGroup('${group}')"]`)?.classList.add('active');
+}
+
+// function selectGroup(group) {
+//   const year = document.getElementById('yearSelect')?.value || new Date().getFullYear();
+//   document.getElementById('groupSelect').value = group;
+
+//   fetchAndRenderChart(group, year);
+//   fetchPieData(group);
+//   loadCommandWiseCharts(group);
+//   loadRepairAgeChart(group);
+
+//   // Button active state
+
+// }
+
+

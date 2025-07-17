@@ -35,14 +35,14 @@
   font-size: 20px;
 }
 
-/* Custom legend styling */
-#legend-box {
+ /* Custom legend styling  */
+ #legend-box {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
   margin-top: 20px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 #legend-box div {
@@ -51,12 +51,17 @@
   gap: 6px;
 }
 
-#legend-box span {
+ #legend-box span {
   width: 14px;
   height: 14px;
   border-radius: 50%;
   display: inline-block;
-}
+} 
+
+
+
+
+
 
 .command-pie-card {
   border: 1px solid #ccc;
@@ -187,29 +192,31 @@ header.topbar {
 }
 
 /* Main content */
-.main-content {
+.main-container {
   flex: 1;
   background-color: #f1f3f5;
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 per row */
-  grid-template-rows: repeat(2, 1fr);    /* 2 rows */
+  grid-template-columns: repeat(2, 1fr); 
+  grid-template-rows: repeat(2, 1fr); 
   grid-gap: 20px;
   padding: 20px;
   transition: all 0.3s ease;
+
+
 }
 @media (max-width: 768px) {
-  .main-content {
+  .main-container {
     grid-template-columns: 1fr; /* 1 per row on small screens */
     grid-template-rows: auto;
   }
 }
 
 
-
+ 
 .chart-section {
   background-color: white;
   border: 1px solid #ccc;
-  height: 200px;
+  height: 220px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -217,57 +224,59 @@ header.topbar {
   transition: transform 0.3s ease, z-index 0.3s ease;
   position: relative;
   overflow: hidden;
-}
+    border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
-/* Fullscreen Chart */
-.chart-section.fullscreen {
+} 
+
+ 
+ .chart-section.fullscreen {
   position: fixed;
   top: 50px;
   left: 0;
   width: 100vw;
   height: calc(100vh - 50px);
   z-index: 999;
-  background-color: white;
+  background-color:#CFCFCF ;
   font-size: 24px;
 }
+.fullscreen-chart canvas{
+  max-width: 250px;
+  margin-left: 22px;
+ 
+}
+
 @media (max-width: 768px) {
   .chart-section.fullscreen {
     grid-template-columns: 1fr; /* 1 per row on small screens */
-    grid-template-rows: auto;
+     grid-template-rows: auto;
   }
-}
+} 
 
 
-    /* .chart-section.fullscreen::after {
-      content: "Click anywhere to close";
-      position: absolute;
-      bottom: 10px;
-      right: 20px;
-      font-size: 12px;
-      color: gray;
-    } */
 
-    /* .close-btn {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background-color: #243447;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  font-size: 20px;
-  cursor: pointer;
-  z-index: 1000;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.close-btn:hover {
-  background-color: #1b2b3c;
-} */
+
+   
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+    } 
+
+
+ @media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    height: calc(100vh - 50px);
+    top: 50px;
+    left: 0;
+  }
+
+  .sidebar.hidden {
+    transform: translateX(-100%);
+  }
+} 
+ 
 
 
 .back-btn {
@@ -285,37 +294,64 @@ header.topbar {
   cursor: pointer;
 }
 
-    
-    @media (max-width: 768px) {
-      .main-content {
-        grid-template-columns: 1fr;
-      }
-    }
+.group-buttons button {
+  background: rgba(3, 3, 48, 0.838);
+  color: #fff;
+  border: none;
+  margin: 0 5px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 6rem;
+  padding: 12px;
+  text-align: center;
+  font-weight: bold;
+}
 
-/* Responsive Sidebar for Mobile */
-@media (max-width: 768px) {
-  .sidebar {
-    position: absolute;
-    height: calc(100vh - 50px);
-    top: 50px;
-    left: 0;
-  }
-
-  .sidebar.hidden {
-    transform: translateX(-100%);
-  }
+.group-buttons button:hover {
+  background: #0056b3;
 }
 
 
 
 
+.group-buttons button.active {
+  background: #28a745;
+}
 
 
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.summary-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.summary-value {
+  font-weight: bold;
+}
 
 
-
-
-
+#underRepairLegendBox, #awaitingCollectionLegendBox {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 
 
 

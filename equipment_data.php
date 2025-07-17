@@ -1,47 +1,45 @@
 <?php
-header('Content-Type: application/json');
 include 'connection.php';
 
-$group = $_GET['group'] ?? '';
-$year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
-
+$group = trim($_GET['group'] ?? '');
 if (!$group) {
     echo json_encode(['error' => 'Group is required']);
     exit;
 }
 
-// Debugging: Show Received Parameters
-echo json_encode([
-    'debug' => 'Received Parameters',
-    'group' => $group,
-    'year' => $year
-]);
+$group = strtoupper($group);  // Convert group to uppercase in PHP
 
-$query = "
-SELECT COUNT(*) as count
-FROM (
-    SELECT TRY_CAST(job_date AS DATE) AS job_dt
-    FROM tb_main
-    WHERE ISDATE(job_date) = 1
-      AND UPPER(LTRIM(RTRIM(status))) = 'UNDER REPAIR'
-      AND UPPER(LTRIM(RTRIM(group_name))) = UPPER(?)
-) AS valid_dates
-WHERE DATEDIFF(DAY, job_dt, GETDATE()) > 90
-  AND DATEDIFF(DAY, job_dt, GETDATE()) <= 180
-  AND YEAR(job_dt) = ?
-";
+function getCount($conn, $group, $minMonths, $maxMonths = null) {
+    $query = "
+        SELECT COUNT(*) AS total
+        FROM tb_main
+        WHERE UPPER(status) = 'UNDER REPAIR'
+          AND UPPER([group_name]) = ?
+          AND job_date IS NOT NULL
+          AND DATEDIFF(MONTH, job_date, GETDATE()) >= ?
+    ";
+    
+    $params = [$group, $minMonths];
 
-$params = [$group, $year];
+    if (!is_null($maxMonths)) {
+        $query .= " AND DATEDIFF(MONTH, job_date, GETDATE()) < ?";
+        $params[] = $maxMonths;
+    }
 
-$stmt = sqlsrv_query($conn, $query, $params);
-
-if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true));
+    $stmt = sqlsrv_query($conn, $query, $params);
+    if (!$stmt) return 0;
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    return $row['total'] ?? 0;
 }
 
-if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-    echo json_encode(['count' => $row['count']]);
-} else {
-    echo json_encode(['count' => 0]);
-}
+$response = [
+    'counts' => [
+        getCount($conn, $group, 0, 3),     // Under 3 months
+        getCount($conn, $group, 3, 6),     // 3 to 6 months
+        getCount($conn, $group, 6, 12),    // 6 to 12 months
+        getCount($conn, $group, 12, null)  // Over 1 year
+    ]
+];
+
+echo json_encode($response);
 ?>

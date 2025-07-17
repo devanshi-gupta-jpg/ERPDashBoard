@@ -8,22 +8,22 @@ if (!$group) {
     exit;
 }
 
-$currentYear = date('Y');
+$year = $_GET['year'] ?? date('Y');  // ✅ Year Filter Added
 $today = new DateTime();
 
 $monthRanges = [
-    ['label' => '26 Mar - 25 Apr', 'start' => "$currentYear-03-26", 'end' => "$currentYear-04-25"],
-    ['label' => '26 Apr - 25 May', 'start' => "$currentYear-04-26", 'end' => "$currentYear-05-25"],
-    ['label' => '26 May - 25 Jun', 'start' => "$currentYear-05-26", 'end' => "$currentYear-06-25"],
-    ['label' => '26 Jun - 25 Jul', 'start' => "$currentYear-06-26", 'end' => "$currentYear-07-25"],
-    ['label' => '26 Jul - 25 Aug', 'start' => "$currentYear-07-26", 'end' => "$currentYear-08-25"],
-    ['label' => '26 Aug - 25 Sep', 'start' => "$currentYear-08-26", 'end' => "$currentYear-09-25"],
-    ['label' => '26 Sep - 25 Oct', 'start' => "$currentYear-09-26", 'end' => "$currentYear-10-25"],
-    ['label' => '26 Oct - 25 Nov', 'start' => "$currentYear-10-26", 'end' => "$currentYear-11-25"],
-    ['label' => '26 Nov - 25 Dec', 'start' => "$currentYear-11-26", 'end' => "$currentYear-12-25"],
-    ['label' => '26 Dec - 25 Jan', 'start' => "$currentYear-12-26", 'end' => ($currentYear + 1) . "-01-25"],
-    ['label' => '26 Jan - 25 Feb', 'start' => ($currentYear + 1) . "-01-26", 'end' => ($currentYear + 1) . "-02-25"],
-    ['label' => '26 Feb - 25 Mar', 'start' => ($currentYear + 1) . "-02-26", 'end' => ($currentYear + 1) . "-03-25"]
+    ['label' => '26 Mar - 25 Apr', 'start' => "$year-03-26", 'end' => "$year-04-25"],
+    ['label' => '26 Apr - 25 May', 'start' => "$year-04-26", 'end' => "$year-05-25"],
+    ['label' => '26 May - 25 Jun', 'start' => "$year-05-26", 'end' => "$year-06-25"],
+    ['label' => '26 Jun - 25 Jul', 'start' => "$year-06-26", 'end' => "$year-07-25"],
+    ['label' => '26 Jul - 25 Aug', 'start' => "$year-07-26", 'end' => "$year-08-25"],
+    ['label' => '26 Aug - 25 Sep', 'start' => "$year-08-26", 'end' => "$year-09-25"],
+    ['label' => '26 Sep - 25 Oct', 'start' => "$year-09-26", 'end' => "$year-10-25"],
+    ['label' => '26 Oct - 25 Nov', 'start' => "$year-10-26", 'end' => "$year-11-25"],
+    ['label' => '26 Nov - 25 Dec', 'start' => "$year-11-26", 'end' => "$year-12-25"],
+    ['label' => '26 Dec - 25 Jan', 'start' => "$year-12-26", 'end' => ($year + 1) . "-01-25"],
+    ['label' => '26 Jan - 25 Feb', 'start' => ($year + 1) . "-01-26", 'end' => ($year + 1) . "-02-25"],
+    ['label' => '26 Feb - 25 Mar', 'start' => ($year + 1) . "-02-26", 'end' => ($year + 1) . "-03-25"]
 ];
 
 function parseDate($dateString)

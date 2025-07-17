@@ -10,7 +10,7 @@
 
     canvas {
       max-width: 600px;
-      max-height: 400px;
+      max-height: 300px;
     }
     select {
       margin-bottom: 1rem;
@@ -36,6 +36,44 @@
     .line-chart{
       max-width: 1000px;
     }
+    .row{
+      margin-top: 50px;
+      margin-bottom: 60px;
+      width: 30%;
+     height: 93%;
+      margin-left: 22px;
+         border-radius: 0.5rem;
+      background-color:#fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      margin-right: 22px;
+      flex-direction: column;
+      align-items: center;
+      justify-self: center;
+        border: 1px solid #ccc;
+    }
+    .graph-heading{
+       font-size: 22px;
+       text-align: center;
+       margin: 15px 5px 18px 12px;
+    }
+
+    .chart-design{
+      width: 80%;
+      height: 480px;
+         border: 1px solid #ccc;
+         background-color:#fff;
+     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+       border-radius: 0.5rem;
+    }
+
+    .level-design{
+      display: flex;
+      flex-direction: column;
+      margin-right: 22px;
+      gap:14px;
+    }
+    
   </style>
 </head>
 <body>
@@ -60,73 +98,71 @@
 
  
      <div class="dashboard-container">
-      <div class="drop-down">
-    <label for="groupSelect">Select Group:</label>
-    <select id="groupSelect">
-      <option value="tl">TL</option>
-      <option value="arcc">ARCC</option>
-      <option value="ge">GE</option>
-      <option value="fc">FC</option>
-      <option value="wlr">WLR</option>
-      <option value="rdr">RDR</option>
-      <option value="oe">OE</option>
-    </select>
-    </div>
-    <main class="main-content" id="main-content">
+    <div class="group-buttons" style="margin: 1rem 0; text-align: center;">
+  <button onclick="selectGroup('tl')">TL</button>
+  <button onclick="selectGroup('arcc')">ARCC</button>
+  <button onclick="selectGroup('ge')">GE</button>
+  <button onclick="selectGroup('fc')">FC</button>
+  <button onclick="selectGroup('wlr')">WLR</button>
+  <button onclick="selectGroup('rdr')">RDR</button>
+  <button onclick="selectGroup('oe')">OE</button>
+</div>
+
+    <main class="main-container" id="main-content">
   
- 
+      <!-- line chart -->
       <div class="chart-section">
-  <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
-  <canvas id="lineChart" class="line-chart" width="1000"  onclick="expandChart(this.parentElement) "></canvas>
+        <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
+        <div class="level-design">
+      <label for="yearSelect">Select Year:</label>
+      <select id="yearSelect" onchange="reloadChart()"></select>
+        </div>
+     <div onclick="expandChart(this.parentElement)" class="chart-design">
+     <canvas id="lineChart" class="line-chart" width="1000"  ></canvas>
+  </div>
+</select>
 </div>
 
 
-
+      <!-- status pie chart -->
       <div class="chart-section">
          <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
         <canvas id="statusChart" width="100" height="100" onclick="expandChart(this.parentElement)"></canvas>
-      <div id="legend-box" style="margin-top:10px;"></div>
+      <div id="statuswise-legend" style="margin-top:10px;"></div>
       </div>
 
 
-
-      <div class="chart-section">
+      <!-- command wise pie chart -->
+      <div class="chart-section  fullscreen-chart" onclick="expandChart(this)">
         <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
-        <h3>Under Repair Equipments</h3>      
-          <canvas id="underRepairChart" width="200" height="200" onclick="expandChart(this.parentElement)"></canvas>
-          <h3>Awaiting Collection Equipments</h3>
-       <canvas id="repairAwaitingChart" width="200" height="200" onclick="expandChart(this.parentElement)"></canvas>
+        <div class="row">
+        <h3 class="graph-heading">Under Repair Equipments</h3>      
+          <canvas id="underRepairChart" width="100" height="200"></canvas>
+          <div id="underRepairLegendBox"></div>
+           </div>
+           <div class="row">
+          <h3 class="graph-heading">Awaiting Collection Equipments</h3>
+       <canvas id="repairAwaitingChart" width="100" height="200"></canvas>
+       <div id="awaitingCollectionLegendBox"></div>
+        </div>
       </div>
 
-      <div class="chart-section"> 
-        <!-- <h2>Repair Duration Equipment-wise (<span id="yearLabel"></span>)</h2> -->
-        <div class="filter">
-        <label for="year">Select Year:</label>
-        <select id="year" onchange="loadChart()">
-            <option value="2017">2017</option>
-            <option value="2018">2018</option>
-            <option value="2019">2019</option>
-            <option value="2020">2020</option>
-            <option value="2021">2021</option>
-            <option value="2022">2022</option>
-            <option value="2023">2023</option>
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
-        </select>
-    </div>
-     <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
-    <canvas id="repairChart" width="900" height="450" onclick="expandChart(this.parentElement)"></canvas>
+
+ <!-- under repair chart -->
+
+         <div class="chart-section">
+         <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
+         <div onclick="expandChart(this.parentElement)" class="chart-design">
+             <canvas id="repairAgeChart" width="100" height="100"></canvas>
+       </div>
       </div>
-      <!-- <div>
-        <canvas id="repairChart"></canvas>
-      </div>
-       -->
+      
+    
+
     </main>
   </div>
   </div>
   <script>
-
-
 
 function expandChart(chart) {
   const expanded = document.querySelector('.chart-section.fullscreen');
