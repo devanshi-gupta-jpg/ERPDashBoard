@@ -2,23 +2,26 @@
 include 'connection.php';
 
 $COMMANDS = ['SWC', 'NC', 'WC', 'EC', 'SC', 'CC', 'IAF'];
+$group = strtoupper(trim($_GET['group'] ?? 'TL'));  // 'TL' by default
 
 // Function to fetch count by command for a given status
-function getDataByStatus($conn, $status, $commands) {
+function getDataByStatus($conn, $status, $commands,$group) {
     $sql = "
-        SELECT 
+             SELECT 
             UPPER(LTRIM(RTRIM(command))) AS command,
             COUNT(*) AS count
         FROM tb_main
         WHERE 
             UPPER(LTRIM(RTRIM(status))) = UPPER(?)
+            AND UPPER(LTRIM(RTRIM([group_name]))) = UPPER(?)
             AND p_id IS NOT NULL
             AND command IS NOT NULL
             AND LTRIM(RTRIM(command)) <> ''
         GROUP BY UPPER(LTRIM(RTRIM(command)))
+
     ";
 
-    $stmt = sqlsrv_query($conn, $sql, [$status]);
+    $stmt = sqlsrv_query($conn, $sql, [$status,$group]);
     if ($stmt === false) return [];
 
     $raw = [];
@@ -38,8 +41,8 @@ function getDataByStatus($conn, $status, $commands) {
 }
 
 $data = [
-    'under_repair' => getDataByStatus($conn, 'UNDER REPAIR', $COMMANDS),
-    'awaiting_collection' => getDataByStatus($conn, 'AWAITING COLLECTION', $COMMANDS)
+    'under_repair' => getDataByStatus($conn, 'UNDER REPAIR', $COMMANDS ,$group),
+    'awaiting_collection' => getDataByStatus($conn, 'AWAITING COLLECTION', $COMMANDS ,$group)
 ];
 
 header('Content-Type: application/json');

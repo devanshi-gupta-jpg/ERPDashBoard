@@ -29,6 +29,41 @@ function reloadChart() {
   fetchAndRenderChart(selectedGroup, selectedYear);
 }
 
+function updateHeading(group, year) {
+  const heading = document.getElementById('lineChartHeading');
+  heading.textContent = `Month Wise Input & Output - ${group.toUpperCase()} (${year})`;
+}
+
+  const links = document.querySelectorAll('.sidebar ul li a');
+  links.forEach(link => {
+    if (link.href === window.location.href) {
+      link.classList.add('active');
+    }
+  });
+
+
+document.querySelectorAll('.sidebar ul li a').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+
+    const page = this.getAttribute('data-page');
+    fetch(page)
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById('main-content').innerHTML = data;
+      });
+
+    // Remove active from all, add active to clicked
+    document.querySelectorAll('.sidebar ul li').forEach(li => li.classList.remove('active'));
+    this.parentElement.classList.add('active');
+  });
+});
+
+
+
+
+
+
 
 
 //line chart
@@ -73,7 +108,7 @@ fetch(`get_chart_data.php?group=${group}&year=${year}`)
           plugins: {
             title: {
               display: true,
-              text: `Monthly Equipment Input & Output -  ${group} (${year})`
+            
             }
           },
           scales: {
@@ -96,14 +131,14 @@ fetch(`get_chart_data.php?group=${group}&year=${year}`)
 }
 
 // On Page Load - Default Group TL
-document.addEventListener('DOMContentLoaded', function () {
-  const groupSelect = document.getElementById('groupSelect');
-  fetchAndRenderChart(groupSelect.value);
+// document.addEventListener('DOMContentLoaded', function () {
+//   const groupSelect = document.getElementById('groupSelect');
+//   fetchAndRenderChart(groupSelect.value);
 
-  groupSelect.addEventListener('change', function () {
-    fetchAndRenderChart(this.value);
-  });
-});
+//   groupSelect.addEventListener('change', function () {
+//     fetchAndRenderChart(this.value);
+//   });
+// });
 
 
 
@@ -259,7 +294,9 @@ function loadCommandWiseCharts(group) {
           }
         });
       }
-      function renderCustomLegend(containerId, labels, counts, colors) {
+      
+  // custom legend    
+  function renderCustomLegend(containerId, labels, counts, colors) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -298,7 +335,9 @@ renderCustomLegend('awaitingCollectionLegendBox', COMMAND_LABELS, awaitingCollec
 
   
 
-   let repairAgeChart = null;   
+   let repairAgeChart = null; 
+   const REPAIRSTATUS_LABEL =  ['Under 3 Months', '3-6 Months', '6-12 Months', 'Over 1 Year'];  
+   const REPAIRSTATUS_COLOR = ['#e67e22','#e67e22','#e67e22','#e67e22'];
   function loadRepairAgeChart(group) {
     fetch(`equipment_data.php?group=${group}`)
     .then(res => res.json())
@@ -314,11 +353,11 @@ renderCustomLegend('awaitingCollectionLegendBox', COMMAND_LABELS, awaitingCollec
         repairAgeChart = new Chart(ctx, {
           type: 'bar',
           data: {
-            labels: ['Under 3 Months', '3-6 Months', '6-12 Months', 'Over 1 Year'],
+            labels: REPAIRSTATUS_LABEL,
             datasets: [{
               label: 'Equipment Count',
               data: data.counts,
-              backgroundColor: '#e67e22'
+              backgroundColor: REPAIRSTATUS_COLOR
             }]
           },
           options: {
@@ -338,6 +377,39 @@ renderCustomLegend('awaitingCollectionLegendBox', COMMAND_LABELS, awaitingCollec
             }
           }
         });
+
+        //custom legend
+
+        function renderCustomLegend(containerId, labels, counts, colors) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const total = counts.reduce((a, b) => a + b, 0) || 1;
+
+  container.innerHTML = labels.map((label, i) => `
+    <div style="
+      display: inline-flex;
+      align-items: center;
+      background: rgba(0,0,0,0.05);
+      margin: 4px;
+      padding: 15px;
+      border-radius: 5px;
+      font-size: 12px;
+    ">
+      <span style="
+        width: 10px; 
+        height: 10px; 
+        border-radius: 50%; 
+        background-color: ${colors[i]};
+        display: inline-block; 
+        margin-right: 5px;">
+      </span>
+      ${label} — ${counts[i]} (${((counts[i] / total) * 100).toFixed(1)}%)
+    </div>
+  `).join('');
+}
+
+ renderCustomLegend('underRepairbarchart', REPAIRSTATUS_LABEL, data.counts,REPAIRSTATUS_COLOR);
       }
     })
     .catch(err => console.error(' Error loading repair age chart:', err));
@@ -398,7 +470,7 @@ function selectGroup(group) {
   // Set the dropdown value so both stay in sync
   const groupSelect = document.getElementById('groupSelect');
   if (groupSelect) groupSelect.value = group;
-
+updateHeading(group, year);
   fetchAndRenderChart(group, year);
   fetchPieData(group);
   loadCommandWiseCharts(group);
