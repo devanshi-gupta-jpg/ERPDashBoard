@@ -8,101 +8,22 @@
 
   <link rel="stylesheet" href="style.css" />
   <style>
-
-    canvas {
-      max-width: 600px;
-      max-height: 300px;
-    }
-    select {
-      margin-bottom: 1rem;
-      padding: 6px 12px;
-    }
-
-     #legend-box span {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      margin-right: 8px;
-      border-radius: 50%;
-    }
-    .drop-down{
-       width: 100%;
-       float: right;
-       border-radius: 5px;
-    }
-    .drop-down label option{
-      float:right;
-      margin-top: 10px;
-      margin-left: 12px;
-    }
-    .line-chart{
-    width: 100%;
-  max-width: 1000px;     /* Optional: limit max width */
-  height: auto;          /* Let height adjust automatically */
-  max-height: 400px;     /* Max height you want */
-  padding: 20px;         /* Margin inside the chart box */
-    margin-bottom: 19px;
-   
-    }
-    .command-chart{
-         margin-top: 50px;
-      margin-bottom: 60px;
-      width: 30%;
-     height: 85%;
-      margin-left: 22px;
-         border-radius: 0.5rem;
-      background-color:#fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    align-items: center;
-      justify-self: center;
-        /* border: 1px solid #ccc; */
-    }
-    .row{
+    .extra-info{
+      width: 100%;
+      height: 70px;
       display: flex;
+
+    }
+    .info{
+      width: 50%;
+      height: 100%;
+      border: 2px solid black;
+      border-radius: 0.5rem;
+      margin:10px 10px 14px 10px;
       justify-content: center;
-  
-
-    }
-    .graph-heading{
-       font-size: 25px;
-       text-align: center;
-       margin: 15px 5px 18px 12px;
-    }
-
-    .chart-design{
-       width: 80%;
-       height: 420px;
-         border: 1px solid #ccc;
-         background-color:#fff;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-       border-radius: 0.5rem;
-       display: flex;
-       justify-content: center;
-       align-items: center;
-    }
-
-
-    .level-design{
-      margin-right: 12px;
-    }
-    #yearSelect{
-      border-radius: 5px;
-      padding: 5px;
-      width: 100px;
-      text-align: center;
-      font-size: 15px;
-      font-weight: bold;
-      border: none;
-       margin-left: 22px;
-    }
-    .year-label{
-      font-size: 22px;
-      color:rgb(11, 11, 100);
-      font-weight: bold;
-      margin-left: 22px;
+      align-items: center;
     }
   
-
 
 
 
@@ -131,58 +52,97 @@
     <aside class="sidebar" id="sidebar">
       <h2>Dashboard</h2>
       <ul>
-       <!-- <li><a href="dashboard.html" >Dashboard 1</a></li>
-        <li><a href="./Dashboard/commondashboard.html" >Dashboard 2</a></li> -->
-         <li><a href="#" data-page="dashboard.html">Dashboard 1</a></li>
-    <li><a href="#" data-page="./Dashboard/commondashboard.html">Dashboard 2</a></li>
+        <li><a href="dashboard.html" >Dashboard 1</a></li>
+        <li><a href="./Dashboard/commondashboard.html" >Dashboard 2</a></li> 
+        
       </ul>
     </aside>
     
 
  
-     <div class="dashboard-container">
-    <!-- <div class="group-buttons" style="margin: 1rem 0; text-align: center;">
-  <button onclick="selectGroup('tl')">TL</button>
-  <button onclick="selectGroup('arcc')">ARCC</button>
-  <button onclick="selectGroup('ge')">GE</button>
-  <button onclick="selectGroup('fc')">FC</button>
-  <button onclick="selectGroup('wlr')">WLR</button>
-  <button onclick="selectGroup('rdr')">RDR</button>
-  <button onclick="selectGroup('oe')">OE</button>
-</div> -->
+      <div class="dashboard-container">
+
+        <!-- <div style="text-align:center; font-weight:bold; font-size:20px;">
+  Total Inputs <span id="totalInputs">0</span> &nbsp;&nbsp;
+  Total Outputs <span id="totalOutputs">0</span> &nbsp;&nbsp;
+  Current Month <Input></Input> -->
+<!-- </div> -->
+
+
+
+          <!-- additional feature  -->
+
+
+  <div class="dashboard">
+    
+    <div class="card card-orange">
+      <div class="card-header">
+        <div>
+             <h3 class="summary-heading">Total Inputs</h3>
+             <h2 id="totalInputs">0</h2>
+        </div>
+        <div class="icon">📊</div>
+      </div>
+    </div>
+
+    <div class="card card-green">
+      <div class="card-header">
+        <div>
+       <h3 class="summary-heading">Total Outputs</h3>
+      <h2 id="totalOutputs">0</h2>
+        </div>
+        <div class="icon">📊</div>
+      </div>
+    </div>
+
+    <div class="card card-red">
+      <div class="card-header">
+        <div>
+         <h3 class="summary-heading">Current Month Input</h3>
+      <h3 id="currentInputs">0</h3>
+        </div>
+        <div class="icon">📈</div>
+      </div>
+    </div>
+
+    <div class="card card-blue">
+      <div class="card-header">
+        <div>
+          <h3 class="summary-heading">Current Month Output</h3>
+           <h3 id="currentOutputs">0</h3>
+        </div>
+        <div class="icon">📈</div>
+      </div>
+    </div>
+
+  </div>
+
+
+
+
+
+
 
     <main class="main-container" id="main-content">
+
+   
+
   
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
       <!-- line chart -->
-       <div class="chart-section">
+        <div class="chart-section">
         <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
          <h3 id="lineChartHeading" class="graph-heading">Monthly Equipment Input & Output</h3>
       <div class="level-design">
       <label for="yearSelect" class="year-label">Select Year:</label>
       <select id="yearSelect" onchange="reloadChart()"></select>
         </div>
-     <!-- <div  class="chart-design"onclick="expandChart(this.parentElement)">  -->
-     <canvas id="lineChart" class="line-chart" width="1000" onclick="expandChart(this.parentElement)"></canvas> 
-   <!-- </div>  -->
+     
+     <canvas id="lineChart" class="line-chart"  onclick="expandChart(this.parentElement)"></canvas> 
+   
  </select>
 </div> 
 
 
-       <!-- status pie chart  -->
       <div class="chart-section">
          <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
          <h3 class="graph-heading">Status Wise Equipment Data</h3>
@@ -191,40 +151,40 @@
       </div>
 
 
-       <!-- command wise pie chart fullscreen-chart  -->
-      <div class="chart-section fullscreen-chart " onclick="expandChart(this)">
+  
+      <div class="chart-section  " onclick="expandChart(this)">
         <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
         <div class="row">
         <div class="command-chart">
         <h3 class="graph-heading">Under Repair Equipments</h3>      
-          <canvas id="underRepairChart" width="100" height="200"></canvas>
+          <canvas id="underRepairChart"></canvas>
           <div id="underRepairLegendBox"></div>
            </div>
            <div class="command-chart">
           <h3 class="graph-heading">Awaiting Collection Equipments</h3>
-       <canvas id="repairAwaitingChart" width="100" height="200"></canvas>
+       <canvas id="repairAwaitingChart" ></canvas>
        <div id="awaitingCollectionLegendBox"></div>
         </div>
       </div>
       </div>
 
 
- <!-- under repair chart  -->
+ 
 
          <div class="chart-section">
          <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
-         <h3 class="graph-heading">Time Duration for Repair Equipments</h3>
+         <h3 class="graph-heading">Time Duration for Under-Repair Equipments</h3>
              <canvas id="repairAgeChart" width="100" height="100" onclick="expandChart(this.parentElement)"></canvas>
              <div id="underRepairbarchart" style="margin-top: 22px;"></div>
        </div>
       </div> 
-      
-    
-
     </main>
   </div>
   </div>
   <script>
+
+
+
 
 function expandChart(chart) {
   const expanded = document.querySelector('.chart-section.fullscreen');
@@ -254,14 +214,16 @@ function collapseChart(e, chart) {
 
 
 
+  
+
 
 
 </script>
 
-
-  <script src="script.js"></script>
-  <script src="dashboard.js"></script>
   <script src="JS\chart.umd.min.js"></script>
+  <script src="JS\chartjs-plugin-datalabels.min.js"></script>
+    <script src="script.js"></script>
+  <script src="dashboard.js"></script>
 </body>
 </html> 
  

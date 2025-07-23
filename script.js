@@ -1,3 +1,9 @@
+Chart.register(ChartDataLabels);
+
+// Disable by default for all charts
+Chart.defaults.set('plugins.datalabels', {
+  display: false
+});
 
 
 // Global constants
@@ -34,36 +40,15 @@ function updateHeading(group, year) {
   heading.textContent = `Month Wise Input & Output - ${group.toUpperCase()} (${year})`;
 }
 
-  const links = document.querySelectorAll('.sidebar ul li a');
-  links.forEach(link => {
-    if (link.href === window.location.href) {
-      link.classList.add('active');
-    }
-  });
 
-
-document.querySelectorAll('.sidebar ul li a').forEach(link => {
-  link.addEventListener('click', function(e) {
-    e.preventDefault();
-
-    const page = this.getAttribute('data-page');
-    fetch(page)
-      .then(res => res.text())
-      .then(data => {
-        document.getElementById('main-content').innerHTML = data;
-      });
-
-    // Remove active from all, add active to clicked
-    document.querySelectorAll('.sidebar ul li').forEach(li => li.classList.remove('active'));
-    this.parentElement.classList.add('active');
-  });
-});
+ 
 
 
 
 
 
 
+  
 
 
 //line chart
@@ -92,7 +77,7 @@ fetch(`get_chart_data.php?group=${group}&year=${year}`)
               data: inputCounts,
               borderColor: '#4CAF50',
               backgroundColor: 'rgba(76, 175, 80, 0.2)',
-              tension: 0.4
+              tension: 0.4,
             },
             {
               label: 'Output (wcn_date)',
@@ -109,9 +94,22 @@ fetch(`get_chart_data.php?group=${group}&year=${year}`)
             title: {
               display: true,
             
-            }
+            },
+            legend: { position: 'left' },
           },
           scales: {
+            x:{
+              ticks:{
+                font:{
+                  weight:'bold',
+                  size:12
+                },
+                padding:14
+              },
+                grid: {
+        offset: true  // Creates space between first tick and y-axis
+      }
+            },
             y: {
               beginAtZero: true,
               title: {
@@ -120,8 +118,12 @@ fetch(`get_chart_data.php?group=${group}&year=${year}`)
               },
               ticks: {
                 stepSize: 1,
-                precision: 0
+                precision: 0,
+                font:{
+                weight:'bold'
               }
+              },
+              
             }
           }
         }
@@ -158,7 +160,7 @@ function fetchPieData(group) {
       if (pieChart) pieChart.destroy();
 
       pieChart = new Chart(ctxPie, {
-        type: 'pie',
+        type: 'doughnut',
         data: {
           labels: STATUS_LABELS,
           datasets: [{
@@ -194,15 +196,13 @@ function fetchPieData(group) {
     <div style="
       display: inline-flex;
       align-items: center;
-      background: rgba(0,0,0,0.05);
-      margin: 4px;
-      padding: 15px;
+      background:	#e7d0f5;
+      margin: 7px;
       border-radius: 5px;
-      font-size: 12px;
     ">
-      <span style="
-        width: 10px; 
-        height: 10px; 
+      <span style=" 
+        width: 7px; 
+        height: 10px;
         border-radius: 50%; 
         background-color: ${colors[i]};
         display: inline-block; 
@@ -302,26 +302,13 @@ function loadCommandWiseCharts(group) {
 
   const total = counts.reduce((a, b) => a + b, 0) || 1;
 
-  container.innerHTML = labels.map((label, i) => `
-    <div style="
-      display: inline-flex;
-      align-items: center;
-      background: rgba(0,0,0,0.05);
-      margin: 4px;
-      padding: 15px;
-      border-radius: 5px;
-      font-size: 12px;
-    ">
-      <span style="
-        width: 10px; 
-        height: 10px; 
-        border-radius: 50%; 
-        background-color: ${colors[i]};
-        display: inline-block; 
-        margin-right: 5px;">
-      </span>
-      ${label} — ${counts[i]} (${((counts[i] / total) * 100).toFixed(1)}%)
-    </div>
+
+
+  container.innerHTML = labels.map((label,i)=>`
+  <div class="legend-item">
+  <span class="legend-dot" style="background-color:${colors[i]};"></span>
+  ${label}-${counts[i]} (${((counts[i]/total)*100).toFixed(1)}%)
+  </div>
   `).join('');
 }
 
@@ -335,11 +322,17 @@ renderCustomLegend('awaitingCollectionLegendBox', COMMAND_LABELS, awaitingCollec
 
   
 
-   let repairAgeChart = null; 
-   const REPAIRSTATUS_LABEL =  ['Under 3 Months', '3-6 Months', '6-12 Months', 'Over 1 Year'];  
-   const REPAIRSTATUS_COLOR = ['#e67e22','#e67e22','#e67e22','#e67e22'];
-  function loadRepairAgeChart(group) {
-    fetch(`equipment_data.php?group=${group}`)
+
+
+let repairAgeChart = null;
+const REPAIRSTATUS_LABEL = ['Under 3 Months', '3-6 Months', '6-12 Months', 'Over 1 Year'];
+const REPAIRSTATUS_COLOR = ['#e67e22', '#e67e22', '#e67e22', '#e67e22'];
+
+// ✅ Register plugin (only once globally)
+Chart.register(ChartDataLabels);
+
+function loadRepairAgeChart(group) {
+  fetch(`equipment_data.php?group=${group}`)
     .then(res => res.json())
     .then(data => {
       console.log('Repair Age Data:', data.counts);
@@ -363,57 +356,68 @@ renderCustomLegend('awaitingCollectionLegendBox', COMMAND_LABELS, awaitingCollec
           options: {
             responsive: true,
             plugins: {
-              legend: { display: false }
+              legend: { display: false },
+              // ✅ Show labels above each bar
+              datalabels: {
+                display:true,
+                anchor: 'end',
+                align: 'end',
+                color: '#000',
+                font: {
+                  weight: 'bold'
+                },
+                formatter: Math.round
+              }
             },
             scales: {
               y: {
                 beginAtZero: true,
                 title: { display: true, text: 'Equipment Count' },
-                ticks:{
-                  stepSize:1,
-                  precision:0
+                ticks: {
+                  stepSize: 1,
+                  precision: 0
                 }
               }
             }
-          }
+          },
+          plugins: [ChartDataLabels] // ✅ Attach plugin here
         });
 
-        //custom legend
-
+        // ✅ Custom Legend Renderer
         function renderCustomLegend(containerId, labels, counts, colors) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+          const container = document.getElementById(containerId);
+          if (!container) return;
 
-  const total = counts.reduce((a, b) => a + b, 0) || 1;
+          const total = counts.reduce((a, b) => a + b, 0) || 1;
 
-  container.innerHTML = labels.map((label, i) => `
-    <div style="
-      display: inline-flex;
-      align-items: center;
-      background: rgba(0,0,0,0.05);
-      margin: 4px;
-      padding: 15px;
-      border-radius: 5px;
-      font-size: 12px;
-    ">
-      <span style="
-        width: 10px; 
-        height: 10px; 
-        border-radius: 50%; 
-        background-color: ${colors[i]};
-        display: inline-block; 
-        margin-right: 5px;">
-      </span>
-      ${label} — ${counts[i]} (${((counts[i] / total) * 100).toFixed(1)}%)
-    </div>
-  `).join('');
-}
+          container.innerHTML = labels.map((label, i) => `
+            <div style="
+              display: inline-flex;
+              align-items: center;
+              background: #e7d0f5;
+              margin: 4px;
+              border-radius: 5px;
+              padding: 2px 6px;
+            ">
+              <span style="
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: ${colors[i]};
+                display: inline-block;
+                margin-right: 5px;">
+              </span>
+              ${label}-${counts[i]} (${((counts[i] / total) * 100).toFixed(1)}%)
+            </div>
+          `).join('');
+        }
 
- renderCustomLegend('underRepairbarchart', REPAIRSTATUS_LABEL, data.counts,REPAIRSTATUS_COLOR);
+        renderCustomLegend('underRepairbarchart', REPAIRSTATUS_LABEL, data.counts, REPAIRSTATUS_COLOR);
       }
     })
-    .catch(err => console.error(' Error loading repair age chart:', err));
+    .catch(err => console.error('Error loading repair age chart:', err));
 }
+
        
                           
 
@@ -443,7 +447,7 @@ renderCustomLegend('awaitingCollectionLegendBox', COMMAND_LABELS, awaitingCollec
 //   });
 // });
 window.addEventListener('DOMContentLoaded', () => {
-  selectGroup('tl');  // ✅ Set default group on page load
+  selectGroup('tl');  
 
   // Also attach dropdown change event
   const groupSelect = document.getElementById('groupSelect');
@@ -463,6 +467,47 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// get summary of chart 
+
+// function fetchSummary(group, year) {
+//   fetch(`get_summary_chart.php?group=${group}&year=${year}`)
+//     .then(res => res.json())
+//     .then(data => {
+//       document.getElementById('totalInputs').textContent = data.totalInputs;
+//       document.getElementById('totalOutputs').textContent = data.totalOutputs;
+//       document.getElementById('currentMonthSummary').textContent = `${data.currentMonthInputs} / ${data.currentMonthOutputs}`;
+//     });
+// }
+
+// function fetchSummary(group, year) {
+//   fetch(`get_summary_chart.php?group=${group}&year=${year}`)
+//     .then(res => res.json())
+//     .then(data => {
+//       document.getElementById('totalInputs').textContent = data.totalInputs;
+//       document.getElementById('totalOutputs').textContent = data.totalOutputs;
+//       document.getElementById('currentMonthSummary').textContent = `${data.currentMonthInputs} / ${data.currentMonthOutputs}`;
+//       document.getElementById('summaryYear').textContent = year;
+//       document.getElementById('summaryYear2').textContent = year;
+//     });
+// }
+
+function fetchSummary(group, year) {
+  fetch(`get_summary_chart.php?group=${group}&year=${year}`)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('totalInputs').textContent = data.totalInputs;
+      document.getElementById('totalOutputs').textContent = data.totalOutputs;
+      document.getElementById('currentInputs').textContent = data.currentMonthInputs;
+      document.getElementById('currentOutputs').textContent = data.currentMonthOutputs;
+
+
+    })
+    .catch(err => console.error('Error fetching summary:', err));
+}
+
+
+
+
 
 function selectGroup(group) {
   const year = document.getElementById('yearSelect')?.value || new Date().getFullYear();
@@ -472,6 +517,8 @@ function selectGroup(group) {
   if (groupSelect) groupSelect.value = group;
 updateHeading(group, year);
   fetchAndRenderChart(group, year);
+    fetchSummary(group, year);  // 
+
   fetchPieData(group);
   loadCommandWiseCharts(group);
   loadRepairAgeChart(group);
@@ -479,17 +526,7 @@ updateHeading(group, year);
   document.querySelector(`.group-buttons button[onclick="selectGroup('${group}')"]`)?.classList.add('active');
 }
 
-// function selectGroup(group) {
-//   const year = document.getElementById('yearSelect')?.value || new Date().getFullYear();
-//   document.getElementById('groupSelect').value = group;
 
-//   fetchAndRenderChart(group, year);
-//   fetchPieData(group);
-//   loadCommandWiseCharts(group);
-//   loadRepairAgeChart(group);
 
-//   // Button active state
-
-// }
 
 
