@@ -5,6 +5,36 @@ Chart.defaults.set('plugins.datalabels', {
   display: false
 });
 
+// Enhanced loading and error handling
+let isLoading = false;
+
+function setLoadingState(loading) {
+  isLoading = loading;
+  const cards = document.querySelectorAll('.card');
+  
+  if (loading) {
+    cards.forEach(card => card.classList.add('loading'));
+    // Show loading overlay if needed
+    // document.getElementById('loadingOverlay').style.display = 'flex';
+  } else {
+    cards.forEach(card => card.classList.remove('loading'));
+    // document.getElementById('loadingOverlay').style.display = 'none';
+  }
+}
+
+function showToast(message, type = 'info') {
+  if (typeof window.showToast === 'function') {
+    window.showToast(message, type);
+  } else {
+    console.log(`${type.toUpperCase()}: ${message}`);
+  }
+}
+
+function handleError(error, context = '') {
+  console.error(`Error in ${context}:`, error);
+  showToast(`Failed to load ${context}. Please try again.`, 'error');
+  setLoadingState(false);
+}
 
 // Global constants
 const STATUS_LABELS = [
@@ -54,15 +84,18 @@ function updateHeading(group, year) {
 //line chart
 
 function fetchAndRenderChart(group ,year) {
+setLoadingState(true);
 fetch(`get_chart_data.php?group=${group}&year=${year}`)
 
     .then(res => res.json())
     .then(result => {
+      setLoadingState(false);
       const data = result.data;
       const labels = data.map(item => item.label);
       const inputCounts = data.map(item => item.input);
       const outputCounts = data.map(item => item.output);
 
+      showToast(`Chart updated for ${group.toUpperCase()} (${year})`, 'success');
 
       if (lineChart) lineChart.destroy();
 
@@ -78,58 +111,113 @@ fetch(`get_chart_data.php?group=${group}&year=${year}`)
               borderColor: '#4CAF50',
               backgroundColor: 'rgba(76, 175, 80, 0.2)',
               tension: 0.4,
+              pointBackgroundColor: '#4CAF50',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
             },
             {
               label: 'Output (wcn_date)',
               data: outputCounts,
               borderColor: '#2196F3',
               backgroundColor: 'rgba(33, 150, 243, 0.2)',
-              tension: 0.4
+              tension: 0.4,
+              pointBackgroundColor: '#2196F3',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
             }
           ]
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          animation: {
+            duration: 1000,
+            easing: 'easeInOutQuart'
+          },
           plugins: {
             title: {
               display: true,
             
             },
-            legend: { position: 'left' },
+            legend: {
+              position: 'left',
+              labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                  size: 12,
+                  weight: 'bold'
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#ffffff',
+              bodyColor: '#ffffff',
+              borderColor: '#9455f4',
+              borderWidth: 1,
+              cornerRadius: 8,
+              displayColors: true,
+              callbacks: {
+                title: function(context) {
+                  return `Period: ${context[0].label}`;
+                },
+                label: function(context) {
+                  return `${context.dataset.label}: ${context.parsed.y} equipments`;
+                }
+              }
+            }
           },
           scales: {
             x:{
               ticks:{
                 font:{
                   weight:'bold',
-                  size:12
+                  size:11
                 },
-                padding:14
+                padding:10,
+                maxRotation: 45
               },
-                grid: {
-        offset: true  // Creates space between first tick and y-axis
-      }
+              grid: {
+                offset: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
             },
             y: {
               beginAtZero: true,
               title: {
                 display: true,
-                text: 'No. of Equipments'
+                text: 'No. of Equipments',
+                font: {
+                  weight: 'bold',
+                  size: 12
+                }
               },
               ticks: {
                 stepSize: 1,
                 precision: 0,
                 font:{
-                weight:'bold'
+                  weight:'bold',
+                  size: 11
               }
               },
-              
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
             }
           }
         }
       });
     })
-    .catch(err => console.error('Error fetching data:', err));
+    .catch(err => handleError(err, 'chart data'));
 }
 
 // On Page Load - Default Group TL
@@ -150,9 +238,11 @@ function fetchPieData(group) {
   const ctxPie = document.getElementById('statusChart')?.getContext('2d');
   if (!ctxPie) return;
 
+  setLoadingState(true);
   fetch(`get_status_pie.php?group=${group}`)
     .then(res => res.json())
     .then(data => {
+      setLoadingState(false);
       const counts = STATUS_LABELS.map(status =>
         data.find(d => d.status === status)?.count || 0
       );
@@ -165,13 +255,31 @@ function fetchPieData(group) {
           labels: STATUS_LABELS,
           datasets: [{
             data:counts,
-            backgroundColor: STATUS_COLORS
+            backgroundColor: STATUS_COLORS,
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverBorderWidth: 3,
+            hoverBorderColor: '#9455f4'
           }]
         },
         options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 1000,
+            easing: 'easeInOutQuart'
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#ffffff',
+              bodyColor: '#ffffff',
+              borderColor: '#9455f4',
+              borderWidth: 1,
+              cornerRadius: 8,
               callbacks: {
                 label: function (context) {
                   const label = context.label || '';
@@ -182,6 +290,9 @@ function fetchPieData(group) {
                 }
               }
             }
+          },
+          onHover: (event, activeElements) => {
+            event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
           }
         }
       });
@@ -199,6 +310,8 @@ function fetchPieData(group) {
       background:	#e7d0f5;
       margin: 7px;
       border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
     ">
       <span style=" 
         width: 7px; 
@@ -218,7 +331,7 @@ renderCustomLegend('statuswise-legend', STATUS_LABELS, counts, STATUS_COLORS);
 
     })
     .catch(err => {
-      console.error(' Error loading status pie chart:', err);
+      handleError(err, 'status pie chart');
     });
 }
 
@@ -243,9 +356,11 @@ const COMMAND_COLORS = ['#0088FE', '#FF8042', '#FFBB28', '#00C49F', '#A28CFE', '
 let underRepairPie, awaitingCollectionPie;
 
 function loadCommandWiseCharts(group) {
+  setLoadingState(true);
   fetch(`get_command_pie.php?group=${group}`)
     .then(res => res.json())
     .then(data => {
+      setLoadingState(false);
       const underRepairCounts = COMMAND_LABELS.map(cmd =>
         data['under_repair'].find(d => d.command === cmd)?.count || 0
       );
@@ -267,12 +382,35 @@ function loadCommandWiseCharts(group) {
             labels: COMMAND_LABELS,
             datasets: [{
               data: underRepairCounts,
-              backgroundColor: COMMAND_COLORS
+              backgroundColor: COMMAND_COLORS,
+              borderWidth: 2,
+              borderColor: '#ffffff',
+              hoverBorderWidth: 3,
+              hoverBorderColor: '#9455f4'
             }]
           },
           options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              animateRotate: true,
+              animateScale: true,
+              duration: 1000,
+              easing: 'easeInOutQuart'
+            },
             plugins:{
-              legend:{display:false}
+              legend:{display:false},
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: '#9455f4',
+                borderWidth: 1,
+                cornerRadius: 8
+              }
+            },
+            onHover: (event, activeElements) => {
+              event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
             }
           }
         });
@@ -286,11 +424,36 @@ function loadCommandWiseCharts(group) {
             labels: COMMAND_LABELS,
             datasets: [{
               data: awaitingCollectionCounts,
-              backgroundColor: COMMAND_COLORS
+              backgroundColor: COMMAND_COLORS,
+              borderWidth: 2,
+              borderColor: '#ffffff',
+              hoverBorderWidth: 3,
+              hoverBorderColor: '#9455f4'
             }]
           },
           options: {
-            plugins: { legend: { display:false } }
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              animateRotate: true,
+              animateScale: true,
+              duration: 1000,
+              easing: 'easeInOutQuart'
+            },
+            plugins: { 
+              legend: { display:false },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: '#9455f4',
+                borderWidth: 1,
+                cornerRadius: 8
+              }
+            },
+            onHover: (event, activeElements) => {
+              event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+            }
           }
         });
       }
@@ -317,7 +480,7 @@ renderCustomLegend('awaitingCollectionLegendBox', COMMAND_LABELS, awaitingCollec
 
 
     })
-    .catch(err => console.error(' Error loading command-wise pie charts:', err));
+    .catch(err => handleError(err, 'command-wise pie charts'));
 }
 
   
@@ -332,9 +495,11 @@ const REPAIRSTATUS_COLOR = ['#e67e22', '#e67e22', '#e67e22', '#e67e22'];
 Chart.register(ChartDataLabels);
 
 function loadRepairAgeChart(group) {
+  setLoadingState(true);
   fetch(`equipment_data.php?group=${group}`)
     .then(res => res.json())
     .then(data => {
+      setLoadingState(false);
       console.log('Repair Age Data:', data.counts);
 
       if (repairAgeChart && typeof repairAgeChart.destroy === 'function') {
@@ -350,11 +515,21 @@ function loadRepairAgeChart(group) {
             datasets: [{
               label: 'Equipment Count',
               data: data.counts,
-              backgroundColor: REPAIRSTATUS_COLOR
+              backgroundColor: REPAIRSTATUS_COLOR,
+              borderWidth: 2,
+              borderColor: '#ffffff',
+              hoverBackgroundColor: '#d35400',
+              hoverBorderColor: '#9455f4',
+              hoverBorderWidth: 3
             }]
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              duration: 1000,
+              easing: 'easeInOutQuart'
+            },
             plugins: {
               legend: { display: false },
               // ✅ Show labels above each bar
@@ -367,17 +542,58 @@ function loadRepairAgeChart(group) {
                   weight: 'bold'
                 },
                 formatter: Math.round
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: '#9455f4',
+                borderWidth: 1,
+                cornerRadius: 8,
+                callbacks: {
+                  label: function(context) {
+                    return `Equipment Count: ${context.parsed.y}`;
+                  }
+                }
               }
             },
             scales: {
               y: {
                 beginAtZero: true,
-                title: { display: true, text: 'Equipment Count' },
+                title: { 
+                  display: true, 
+                  text: 'Equipment Count',
+                  font: {
+                    weight: 'bold',
+                    size: 12
+                  }
+                },
                 ticks: {
                   stepSize: 1,
-                  precision: 0
+                  precision: 0,
+                  font: {
+                    weight: 'bold',
+                    size: 11
+                  }
+                },
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.1)'
+                }
+              },
+              x: {
+                ticks: {
+                  font: {
+                    weight: 'bold',
+                    size: 11
+                  }
+                },
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.1)'
                 }
               }
+            },
+            onHover: (event, activeElements) => {
+              event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
             }
           },
           plugins: [ChartDataLabels] // ✅ Attach plugin here
@@ -398,6 +614,8 @@ function loadRepairAgeChart(group) {
               margin: 4px;
               border-radius: 5px;
               padding: 2px 6px;
+              cursor: pointer;
+              transition: all 0.3s ease;
             ">
               <span style="
                 width: 10px;
@@ -415,7 +633,7 @@ function loadRepairAgeChart(group) {
         renderCustomLegend('underRepairbarchart', REPAIRSTATUS_LABEL, data.counts, REPAIRSTATUS_COLOR);
       }
     })
-    .catch(err => console.error('Error loading repair age chart:', err));
+    .catch(err => handleError(err, 'repair age chart'));
 }
 
        
@@ -492,17 +710,23 @@ window.addEventListener('DOMContentLoaded', () => {
 // }
 
 function fetchSummary(group, year) {
+  setLoadingState(true);
   fetch(`get_summary_chart.php?group=${group}&year=${year}`)
     .then(res => res.json())
     .then(data => {
+      setLoadingState(false);
       document.getElementById('totalInputs').textContent = data.totalInputs;
       document.getElementById('totalOutputs').textContent = data.totalOutputs;
       document.getElementById('currentInputs').textContent = data.currentMonthInputs;
       document.getElementById('currentOutputs').textContent = data.currentMonthOutputs;
 
+      // Update year displays
+      document.getElementById('summaryYear').textContent = year;
+      document.getElementById('summaryYear2').textContent = year;
 
+      showToast(`Summary updated for ${group.toUpperCase()} (${year})`, 'success');
     })
-    .catch(err => console.error('Error fetching summary:', err));
+    .catch(err => handleError(err, 'summary data'));
 }
 
 
@@ -524,6 +748,13 @@ updateHeading(group, year);
   loadRepairAgeChart(group);
     document.querySelectorAll('.group-buttons button').forEach(btn => btn.classList.remove('active'));
   document.querySelector(`.group-buttons button[onclick="selectGroup('${group}')"]`)?.classList.add('active');
+  
+  showToast(`Switched to ${group.toUpperCase()} group`, 'info');
+  
+  // Announce to screen readers
+  if (window.announceToScreenReader) {
+    window.announceToScreenReader(`Switched to ${group.toUpperCase()} group data`);
+  }
 }
 
 

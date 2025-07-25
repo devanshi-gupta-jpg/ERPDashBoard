@@ -1,230 +1,487 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ERP Dashboard</title>
-
-
-  <link rel="stylesheet" href="style.css" />
-  <style>
-    .extra-info{
-      width: 100%;
-      height: 70px;
-      display: flex;
-
-    }
-    .info{
-      width: 50%;
-      height: 100%;
-      border: 2px solid black;
-      border-radius: 0.5rem;
-      margin:10px 10px 14px 10px;
-      justify-content: center;
-      align-items: center;
-    }
-  
-
-
-
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive Equipment Management Dashboard">
+  <meta name="theme-color" content="#9455f4">
+  <title>Equipment Management Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="JS/chart.umd.min.js"></script>
+  <script src="JS/chartjs-plugin-datalabels.min.js"></script>
 </head>
 <body>
-
-
-  <header class="topbar">
-    <button class="menu-toggle" id="menuToggle">&#9776;</button>
-    <h1 class="logo-text">ERP</h1>
-     <div class="group-buttons" style="margin-left: 30rem; text-align:center;">
-  <button onclick="selectGroup('tl')">TL</button>
-  <button onclick="selectGroup('arcc')">ARCC</button>
-  <button onclick="selectGroup('ge')">GE</button>
-  <button onclick="selectGroup('fc')">FC</button>
-  <button onclick="selectGroup('wlr')">WLR</button>
-  <button onclick="selectGroup('rdr')">RDR</button>
-  <button onclick="selectGroup('oe')">OE</button>
-</div>
+  <!-- Enhanced Header with better accessibility -->
+  <header class="topbar" role="banner">
+    <button class="menu-toggle ripple" onclick="toggleSidebar()" aria-label="Toggle navigation menu" aria-expanded="false">
+      <div class="hamburger-line"></div>
+      <div class="hamburger-line"></div>
+      <div class="hamburger-line"></div>
+    </button>
+    <div class="logo-text" onclick="refreshDashboard()" role="button" tabindex="0" aria-label="Refresh dashboard">Equipment Dashboard</div>
+    <div class="group-buttons" role="group" aria-label="Equipment group selection">
+      <button onclick="selectGroup('tl')" class="active ripple glow-on-hover" aria-label="Select TL group">TL</button>
+      <button onclick="selectGroup('el')" class="ripple glow-on-hover" aria-label="Select EL group">EL</button>
+      <button onclick="selectGroup('in')" class="ripple glow-on-hover" aria-label="Select IN group">IN</button>
+      <button onclick="selectGroup('ar')" class="ripple glow-on-hover" aria-label="Select AR group">AR</button>
+      <button onclick="selectGroup('ad')" class="ripple glow-on-hover" aria-label="Select AD group">AD</button>
+      <button onclick="selectGroup('sig')" class="ripple glow-on-hover" aria-label="Select SIG group">SIG</button>
+    </div>
   </header>
 
-
   <div class="container">
-
-    <aside class="sidebar" id="sidebar">
-      <h2>Dashboard</h2>
-      <ul>
-        <li><a href="dashboard.html" >Dashboard 1</a></li>
-        <li><a href="./Dashboard/commondashboard.html" >Dashboard 2</a></li> 
-        
+    <!-- Enhanced Sidebar with better navigation -->
+    <nav class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+      <h2>Dashboard Menu</h2>
+      <ul role="menubar">
+        <li role="none">
+          <a href="#overview" class="active ripple" role="menuitem" aria-label="Overview section">📊 Overview</a>
+        </li>
+        <li role="none">
+          <a href="#charts" class="ripple" role="menuitem" aria-label="Charts section">📈 Charts</a>
+        </li>
+        <li role="none">
+          <a href="#reports" class="ripple" role="menuitem" aria-label="Reports section">📋 Reports</a>
+        </li>
       </ul>
-    </aside>
-    
+    </nav>
 
- 
-      <div class="dashboard-container">
-
-        <!-- <div style="text-align:center; font-weight:bold; font-size:20px;">
-  Total Inputs <span id="totalInputs">0</span> &nbsp;&nbsp;
-  Total Outputs <span id="totalOutputs">0</span> &nbsp;&nbsp;
-  Current Month <Input></Input> -->
-<!-- </div> -->
-
-
-
-          <!-- additional feature  -->
-
-
-  <div class="dashboard">
-    
-    <div class="card card-orange">
-      <div class="card-header">
-        <div>
-             <h3 class="summary-heading">Total Inputs</h3>
-             <h2 id="totalInputs">0</h2>
+    <div class="dashboard-container">
+      <!-- Enhanced Dashboard Cards with loading states -->
+      <section class="dashboard" role="region" aria-label="Dashboard summary cards">
+        <div class="card card-orange glow-on-hover" tabindex="0" role="button" aria-label="Total Equipment Input" data-tooltip="Total equipment inputs for selected year">
+          <div class="card-header">
+            <div>
+              <p class="summary-heading">Total Input (<span id="summaryYear">2024</span>)</p>
+              <h2 id="totalInputs">
+                <span class="loading-placeholder">
+                  <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </span>
+              </h2>
+            </div>
+            <div class="icon">📥</div>
+          </div>
         </div>
-        <div class="icon">📊</div>
-      </div>
-    </div>
 
-    <div class="card card-green">
-      <div class="card-header">
-        <div>
-       <h3 class="summary-heading">Total Outputs</h3>
-      <h2 id="totalOutputs">0</h2>
+        <div class="card card-green glow-on-hover" tabindex="0" role="button" aria-label="Total Equipment Output" data-tooltip="Total equipment outputs for selected year">
+          <div class="card-header">
+            <div>
+              <p class="summary-heading">Total Output (<span id="summaryYear2">2024</span>)</p>
+              <h3 id="totalOutputs">
+                <span class="loading-placeholder">
+                  <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </span>
+              </h3>
+            </div>
+            <div class="icon">📤</div>
+          </div>
         </div>
-        <div class="icon">📊</div>
-      </div>
-    </div>
 
-    <div class="card card-red">
-      <div class="card-header">
-        <div>
-         <h3 class="summary-heading">Current Month Input</h3>
-      <h3 id="currentInputs">0</h3>
+        <div class="card card-red glow-on-hover" tabindex="0" role="button" aria-label="Current Month Input" data-tooltip="Equipment inputs for current financial month">
+          <div class="card-header">
+            <div>
+              <p class="summary-heading">Current Month Input</p>
+              <h3 id="currentInputs">
+                <span class="loading-placeholder">
+                  <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </span>
+              </h3>
+            </div>
+            <div class="icon">📊</div>
+          </div>
         </div>
-        <div class="icon">📈</div>
-      </div>
-    </div>
 
-    <div class="card card-blue">
-      <div class="card-header">
-        <div>
-          <h3 class="summary-heading">Current Month Output</h3>
-           <h3 id="currentOutputs">0</h3>
+        <div class="card card-blue glow-on-hover" tabindex="0" role="button" aria-label="Current Month Output" data-tooltip="Equipment outputs for current financial month">
+          <div class="card-header">
+            <div>
+              <p class="summary-heading">Current Month Output</p>
+              <h3 id="currentOutputs">
+                <span class="loading-placeholder">
+                  <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </span>
+              </h3>
+            </div>
+            <div class="icon">📈</div>
+          </div>
         </div>
-        <div class="icon">📈</div>
-      </div>
-    </div>
+      </section>
 
+      <main class="main-container" id="main-content" role="main" aria-label="Dashboard charts">
+        <section class="chart-section glow-on-hover" tabindex="0" role="button" aria-label="Monthly Equipment Input & Output Chart" data-tooltip="Click to expand chart">
+          <button class="back-btn ripple" onclick="collapseChart(event, this.parentElement)" aria-label="Close fullscreen">← Back</button>
+          <div class="level-design">
+            <label for="yearSelect" class="year-label">Year:</label>
+            <select id="yearSelect" class="glow-on-hover" onchange="reloadChart()" aria-label="Select year for chart data"></select>
+          </div>
+          <h3 class="graph-heading" id="lineChartHeading">Month Wise Input & Output - TL (2024)</h3>
+          <canvas id="lineChart" class="line-chart" onclick="expandChart(this.parentElement)" aria-label="Line chart showing monthly data" role="img"></canvas> 
+        </section> 
+
+        <section class="chart-section glow-on-hover" tabindex="0" role="button" aria-label="Status Wise Equipment Data Chart" data-tooltip="Equipment status distribution">
+          <button class="back-btn ripple" onclick="collapseChart(event, this.parentElement)" aria-label="Close fullscreen">← Back</button>
+          <h3 class="graph-heading">Status Wise Equipment Data</h3>
+          <canvas id="statusChart" width="100" height="100" onclick="expandChart(this.parentElement)" aria-label="Pie chart showing status distribution" role="img"></canvas>
+          <div id="statuswise-legend" role="list" aria-label="Status legend"></div>
+        </section>
+
+        <section class="chart-section glow-on-hover" onclick="expandChart(this)" tabindex="0" role="button" aria-label="Command Wise Equipment Charts" data-tooltip="Equipment distribution by command">
+          <button class="back-btn ripple" onclick="collapseChart(event, this.parentElement)" aria-label="Close fullscreen">← Back</button>
+          <h3 class="graph-heading">Command Wise Equipment Data</h3>
+          <div class="row">
+            <div class="command-chart">
+              <h4 style="text-align: center; margin-bottom: 15px; color: #1f2937;">Under Repair</h4>
+              <canvas id="underRepairChart" aria-label="Pie chart showing under repair equipment by command" role="img"></canvas>
+              <div id="underRepairLegendBox" role="list" aria-label="Under repair legend"></div>
+            </div>
+            <div class="command-chart">
+              <h4 style="text-align: center; margin-bottom: 15px; color: #1f2937;">Awaiting Collection</h4>
+              <canvas id="repairAwaitingChart" aria-label="Pie chart showing awaiting collection equipment by command" role="img"></canvas>
+              <div id="awaitingCollectionLegendBox" role="list" aria-label="Awaiting collection legend"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="chart-section glow-on-hover" tabindex="0" role="button" aria-label="Time Duration for Under-Repair Equipment Chart" data-tooltip="Repair duration analysis">
+          <button class="back-btn ripple" onclick="collapseChart(event, this.parentElement)" aria-label="Close fullscreen">← Back</button>
+          <h3 class="graph-heading">Time Duration for Under-Repair Equipment</h3>
+          <canvas id="repairAgeChart" width="100" height="100" onclick="expandChart(this.parentElement)" aria-label="Bar chart showing repair duration distribution" role="img"></canvas>
+          <div id="underRepairbarchart" role="list" aria-label="Repair duration legend"></div>
+        </section>
+      </main>
+    </div>
   </div>
 
-
-
-
-
-
-
-    <main class="main-container" id="main-content">
-
-   
-
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;" role="status" aria-label="Loading dashboard data">
+    <div>
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading Dashboard Data<span class="loading-dots"><span></span><span></span><span></span></span></div>
+    </div>
+  </div>
   
-      <!-- line chart -->
-        <div class="chart-section">
-        <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
-         <h3 id="lineChartHeading" class="graph-heading">Monthly Equipment Input & Output</h3>
-      <div class="level-design">
-      <label for="yearSelect" class="year-label">Select Year:</label>
-      <select id="yearSelect" onchange="reloadChart()"></select>
-        </div>
-     
-     <canvas id="lineChart" class="line-chart"  onclick="expandChart(this.parentElement)"></canvas> 
-   
- </select>
-</div> 
-
-
-      <div class="chart-section">
-         <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
-         <h3 class="graph-heading">Status Wise Equipment Data</h3>
-        <canvas id="statusChart" width="100" height="100" onclick="expandChart(this.parentElement)"></canvas>
-      <div id="statuswise-legend" style="margin-top:10px;"></div>
-      </div>
-
-
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>
   
-      <div class="chart-section  " onclick="expandChart(this)">
-        <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
-        <div class="row">
-        <div class="command-chart">
-        <h3 class="graph-heading">Under Repair Equipments</h3>      
-          <canvas id="underRepairChart"></canvas>
-          <div id="underRepairLegendBox"></div>
-           </div>
-           <div class="command-chart">
-          <h3 class="graph-heading">Awaiting Collection Equipments</h3>
-       <canvas id="repairAwaitingChart" ></canvas>
-       <div id="awaitingCollectionLegendBox"></div>
-        </div>
-      </div>
-      </div>
+  <!-- Interactive Tooltip -->
+  <div id="interactiveTooltip" class="interactive-tooltip" role="tooltip"></div>
 
-
- 
-
-         <div class="chart-section">
-         <button class="back-btn" onclick="collapseChart(event, this.parentElement)">←</button>
-         <h3 class="graph-heading">Time Duration for Under-Repair Equipments</h3>
-             <canvas id="repairAgeChart" width="100" height="100" onclick="expandChart(this.parentElement)"></canvas>
-             <div id="underRepairbarchart" style="margin-top: 22px;"></div>
-       </div>
-      </div> 
-    </main>
-  </div>
-  </div>
   <script>
+    // Enhanced Toast System
+    function showToast(message, type = 'info', duration = 3000) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      toast.innerHTML = `
+        <div>${message}</div>
+        <button class="toast-close" onclick="removeToast(this.parentElement)" aria-label="Close notification">&times;</button>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Auto remove after duration
+      setTimeout(() => {
+        if (toast.parentElement) {
+          removeToast(toast);
+        }
+      }, duration);
+      
+      return toast;
+    }
 
+    function removeToast(toast) {
+      toast.style.animation = 'slideOutToast 0.3s ease-out forwards';
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.parentElement.removeChild(toast);
+        }
+      }, 300);
+    }
 
+    // Enhanced Tooltip System
+    const tooltip = document.getElementById('interactiveTooltip');
+    let tooltipTimeout;
 
+    function showTooltip(element, text) {
+      clearTimeout(tooltipTimeout);
+      tooltip.textContent = text;
+      tooltip.classList.add('show');
+      
+      const rect = element.getBoundingClientRect();
+      tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+      tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
+    }
 
-function expandChart(chart) {
-  const expanded = document.querySelector('.chart-section.fullscreen');
+    function hideTooltip() {
+      tooltipTimeout = setTimeout(() => {
+        tooltip.classList.remove('show');
+      }, 100);
+    }
 
-  if (expanded && expanded !== chart) {
-    expanded.classList.remove('fullscreen');
-    const btn = expanded.querySelector('.back-btn');
-    if (btn) btn.style.display = 'none';
-  }
+    // Add tooltip functionality to all elements with data-tooltip
+    document.addEventListener('DOMContentLoaded', function() {
+      const tooltipElements = document.querySelectorAll('[data-tooltip]');
+      
+      tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', function() {
+          const tooltipText = this.getAttribute('data-tooltip');
+          if (tooltipText) {
+            showTooltip(this, tooltipText);
+          }
+        });
+        
+        element.addEventListener('mouseleave', hideTooltip);
+        
+        // Enhanced focus support for keyboard navigation
+        element.addEventListener('focus', function() {
+          const tooltipText = this.getAttribute('data-tooltip');
+          if (tooltipText) {
+            showTooltip(this, tooltipText);
+          }
+        });
+        
+        element.addEventListener('blur', hideTooltip);
+      });
+    });
 
-  const isFullscreen = chart.classList.toggle('fullscreen');
-  const backBtn = chart.querySelector('.back-btn');
-  if (backBtn) {
-    backBtn.style.display = isFullscreen ? 'block' : 'none';
-  }
-}
+    // Enhanced Sidebar Toggle
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const menuToggle = document.querySelector('.menu-toggle');
+      const mainContainer = document.querySelector('.main-container');
+      
+      sidebar.classList.toggle('hidden');
+      
+      // Update ARIA attributes
+      const isExpanded = !sidebar.classList.contains('hidden');
+      menuToggle.setAttribute('aria-expanded', isExpanded);
+      
+      // Add blur effect on mobile when sidebar is open
+      if (window.innerWidth <= 768) {
+        mainContainer.classList.toggle('sidebar-open', isExpanded);
+      }
+      
+      if (isExpanded) {
+        showToast('Navigation menu opened', 'info');
+      } else {
+        showToast('Navigation menu closed', 'info');
+      }
+      
+      // Add haptic feedback for mobile devices
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }
 
-function collapseChart(e, chart) {
-  e.stopPropagation(); // prevent triggering expand again
-  chart.classList.remove('fullscreen');
-  const btn = chart.querySelector('.back-btn');
-  if (btn) btn.style.display = 'none';
-}
+    // Enhanced Chart Expansion
+    function expandChart(chartSection) {
+      chartSection.classList.add('fullscreen');
+      document.body.style.overflow = 'hidden';
+      
+      // Update ARIA attributes
+      chartSection.setAttribute('aria-expanded', 'true');
+      
+      showToast('Chart expanded to fullscreen', 'info');
+      
+      // Add escape key listener
+      document.addEventListener('keydown', handleEscapeKey);
+    }
 
+    function collapseChart(event, chartSection) {
+      event.stopPropagation();
+      chartSection.classList.remove('fullscreen');
+      document.body.style.overflow = 'auto';
+      
+      // Update ARIA attributes
+      chartSection.setAttribute('aria-expanded', 'false');
+      
+      showToast('Chart collapsed', 'info');
+      
+      // Remove escape key listener
+      document.removeEventListener('keydown', handleEscapeKey);
+    }
 
+    function handleEscapeKey(event) {
+      if (event.key === 'Escape') {
+        const fullscreenChart = document.querySelector('.chart-section.fullscreen');
+        if (fullscreenChart) {
+          collapseChart(event, fullscreenChart);
+        }
+      }
+    }
 
+    // Enhanced Refresh Dashboard
+    function refreshDashboard() {
+      showToast('Refreshing dashboard...', 'info');
+      
+      // Add loading state
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => card.classList.add('loading'));
+      
+      // Simulate refresh (in real app, this would reload data)
+      setTimeout(() => {
+        cards.forEach(card => card.classList.remove('loading'));
+        showToast('Dashboard refreshed successfully!', 'success');
+      }, 1500);
+      
+      // Add haptic feedback
+      if (navigator.vibrate) {
+        navigator.vibrate([50, 100, 50]);
+      }
+    }
 
+    // Enhanced Keyboard Navigation
+    document.addEventListener('keydown', function(event) {
+      // Tab navigation enhancement
+      if (event.key === 'Tab') {
+        document.body.classList.add('keyboard-navigation');
+      }
+      
+      // Arrow key navigation for group buttons
+      if (event.target.classList.contains('group-buttons') && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+        const buttons = Array.from(document.querySelectorAll('.group-buttons button'));
+        const currentIndex = buttons.indexOf(event.target);
+        let nextIndex;
+        
+        if (event.key === 'ArrowLeft') {
+          nextIndex = currentIndex > 0 ? currentIndex - 1 : buttons.length - 1;
+        } else {
+          nextIndex = currentIndex < buttons.length - 1 ? currentIndex + 1 : 0;
+        }
+        
+        buttons[nextIndex].focus();
+        event.preventDefault();
+      }
+    });
 
+    document.addEventListener('mousedown', function() {
+      document.body.classList.remove('keyboard-navigation');
+    });
 
+    // Enhanced Responsive Behavior
+    window.addEventListener('resize', function() {
+      const sidebar = document.getElementById('sidebar');
+      const mainContainer = document.querySelector('.main-container');
+      
+      // Auto-hide sidebar on mobile
+      if (window.innerWidth <= 768 && !sidebar.classList.contains('hidden')) {
+        sidebar.classList.add('hidden');
+        mainContainer.classList.remove('sidebar-open');
+      }
+      
+      // Auto-show sidebar on desktop
+      if (window.innerWidth > 1024 && sidebar.classList.contains('hidden')) {
+        sidebar.classList.remove('hidden');
+        mainContainer.classList.remove('sidebar-open');
+      }
+    });
+
+    // Enhanced Scroll Behavior
+    let lastScrollTop = 0;
+    const topbar = document.querySelector('.topbar');
+
+    window.addEventListener('scroll', function() {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // Add scrolled class for enhanced styling
+      if (scrollTop > 10) {
+        topbar.classList.add('scrolled');
+      } else {
+        topbar.classList.remove('scrolled');
+      }
+      
+      lastScrollTop = scrollTop;
+    });
+
+    // Enhanced Performance Monitoring
+    window.addEventListener('load', function() {
+      const loadTime = performance.now();
+      console.log(`Dashboard loaded in ${loadTime.toFixed(2)}ms`);
+      
+      if (loadTime > 3000) {
+        showToast('Dashboard loaded slower than expected', 'warning');
+      } else {
+        showToast('Dashboard loaded successfully!', 'success');
+      }
+    });
+
+    // Enhanced Error Handling
+    window.addEventListener('error', function(event) {
+      console.error('Dashboard error:', event.error);
+      showToast('An error occurred. Please refresh the page.', 'error');
+    });
+
+    // Enhanced Accessibility Features
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add skip link for screen readers
+      const skipLink = document.createElement('a');
+      skipLink.href = '#main-content';
+      skipLink.textContent = 'Skip to main content';
+      skipLink.className = 'skip-link';
+      skipLink.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 6px;
+        background: #9455f4;
+        color: white;
+        padding: 8px;
+        text-decoration: none;
+        border-radius: 4px;
+        z-index: 10000;
+        transition: top 0.3s;
+      `;
+      
+      skipLink.addEventListener('focus', function() {
+        this.style.top = '6px';
+      });
+      
+      skipLink.addEventListener('blur', function() {
+        this.style.top = '-40px';
+      });
+      
+      document.body.insertBefore(skipLink, document.body.firstChild);
+      
+      // Announce page changes to screen readers
+      const announcer = document.createElement('div');
+      announcer.setAttribute('aria-live', 'polite');
+      announcer.setAttribute('aria-atomic', 'true');
+      announcer.style.cssText = `
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      `;
+      document.body.appendChild(announcer);
+      
+      window.announceToScreenReader = function(message) {
+        announcer.textContent = message;
+        setTimeout(() => {
+          announcer.textContent = '';
+        }, 1000);
+      };
+    });
+  </script>
   
-
-
-
-</script>
-
-  <script src="JS\chart.umd.min.js"></script>
-  <script src="JS\chartjs-plugin-datalabels.min.js"></script>
-    <script src="script.js"></script>
-  <script src="dashboard.js"></script>
+  <script src="script.js"></script>
 </body>
-</html> 
- 
-
+</html>
